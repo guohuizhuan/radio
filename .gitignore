@@ -1,5 +1,6 @@
 #ignore file 
-/radio/EWARM/radio
-/radio/setting
-/radio/BuildLog.log
-/radio/radio.ewt
+/radio/EWARM/radio/
+/radio/EWARM/settings
+/radio/EWARM/BuildLog.log
+/radio/EWARM/radio.ewt
+
