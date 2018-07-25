@@ -6,7 +6,8 @@
 
 
 
-#define TEA5767_ADR      0x60 // I2C address of TEA5767
+#define TEA5767_WRITE_ADDR      0xC0 // I2C address of TEA5767
+#define TEA5767_READ_ADDR       0xC1 // I2C address of TEA5767
 
 #define QUARTZ           32768
 #define FILTER           225000
@@ -180,11 +181,11 @@ uint8_t reg5_reserved:8;
 
 
 #if (BAND_LIMIT_REGION == BAND_LIMIT_REGION_EUROPE)
-#define  BAND_LIMIT_UP              (108*MHZ_VALUE/FREQ_UINIT)
-#define  BAND_LIMIT_DOWN            (87.5*MHZ_VALUE/FREQ_UINIT)
+#define  BAND_LIMIT_UP              (108*1000000)
+#define  BAND_LIMIT_DOWN            (875*100000)
 #else
-#define  BAND_LIMIT_UP              (91*MHZ_VALUE/FREQ_UINIT)
-#define  BAND_LIMIT_DOWN            (76*MHZ_VALUE/FREQ_UINIT)
+#define  BAND_LIMIT_UP              (91*1000000)
+#define  BAND_LIMIT_DOWN            (76*1000000)
 #endif
 
 
@@ -198,18 +199,26 @@ int iic_write(uint8_t addr,uint8_t *buff,uint8_t cnt);
 int iic_read(uint8_t addr,uint8_t *buff,uint8_t cnt);
 
 
+
+
 int tea5767_init(void) 
 {
 int result;
 log_debug("init start...\r\n");
 
 config.reg1=0;
+config.mute=CONFIG_MUTE_ON;
+config.sm=CONFIG_SEARCH_MODE_DISABLE;
 config.reg2=0;
 config.reg3=0;
+config.hlsi=CONFIG_HLSI_HIGH;
 
 config.reg4=0;
+config.smute=CONFIG_SOFT_MUTE_ON;
+config.snc=CONFIG_STEREO_NOISE_CANCLE_ON;
 config.stby=CONFIG_EXIT_STANDBY_MODE;
 config.xtal=CONFIG_XTAL_32768HZ;
+
 #if (BAND_LIMIT_REGION == BAND_LIMIT_REGION_EUROPE)
 config.bl=CONFIG_BAND_LIMIT_EUROPE;
 #else
@@ -217,12 +226,15 @@ config.bl=CONFIG_BAND_LIMIT_JAPANESE;
 #endif
 
 config.reg5=0;
+config.dtc=1;
 
 result =tea5767_update();
 if(result == -1){
 log_error("init  error.\r\n");
 return -1;
 }
+
+tea5767_set_cur_freq(87500000);
 log_debug("init ok.done.\r\n");
 
 return 0;
@@ -233,14 +245,14 @@ return 0;
 int tea5767_update(void)
 {
  int result;
- result = iic_write(TEA5767_ADR,(uint8_t *)&config,5);
+ result = iic_write(TEA5767_WRITE_ADDR,(uint8_t *)&config,5);
  return result;
 }
 
 int tea5767_status(void)
 {
  int result;
- result = iic_read(TEA5767_ADR,(uint8_t *)&status,5);
+ result = iic_read(TEA5767_READ_ADDR,(uint8_t *)&status,5);
  return result;
 }
 
@@ -260,8 +272,10 @@ int tea5767_id(uint8_t *id)
 
 int tea5767_mute_on(void)
 {
-int result;
+ int result;
+ 
 config.mute=CONFIG_MUTE_ON;
+
 result = tea5767_update();
 if(result == -1){
 log_error("mute on error.\r\n");
@@ -276,6 +290,7 @@ return 0;
 int tea5767_mute_off(void)
 {
 int result;
+
 config.mute=CONFIG_MUTE_OFF;
 result = tea5767_update();
 if(result == -1){
@@ -291,8 +306,8 @@ return 0;
 int tea5767_stereo_on(void)
 {
 int result;
-config.ms=CONFIG_MONO_OFF_STEREO_ON;
 
+config.ms=CONFIG_MONO_OFF_STEREO_ON;
 result = tea5767_update();
 if(result == -1){
 log_error("stereo on error.\r\n");
@@ -306,26 +321,65 @@ return 0;
 
 int tea5767_stereo_off(void)
 {
-int result;
-config.ms=CONFIG_MONO_ON_STEREO_OFF;
+ int result;
 
+config.ms=CONFIG_MONO_ON_STEREO_OFF;
 result = tea5767_update();
 if(result == -1){
-log_error("stereo on error.\r\n");
+log_error("stereo off error.\r\n");
 return -1;
 }
-log_debug("stereo on ok.\r\n");
+log_debug("stereo off ok.\r\n");
 
 return 0;
 
+}
+
+static int tea5767_pll_increase_one_step()
+{
+ uint32_t freq;
+ uint16_t pll;
+ pll=(uint16_t)config.pllh << 8 |config.plll;
+ freq= (pll * (QUARTZ / 4)) - FILTER;
+ freq+=(32768*3);
+ pll = (freq + FILTER) / (QUARTZ/4);
+ config.pllh=(pll >> 8) & CONFIG_PLLH_MASK;
+ config.plll=(pll & CONFIG_PLLL_MASK);
+ return  0;
+}
+
+static int tea5767_pll_decrease_one_step()
+{
+ uint32_t freq;
+ uint16_t pll;
+ pll=(uint16_t)config.pllh << 8 |config.plll;
+ freq= (pll * (QUARTZ / 4)) - FILTER;
+ freq-=(32768*3);
+ pll = (freq + FILTER) / (QUARTZ/4);
+ config.pllh=(pll >> 8) & CONFIG_PLLH_MASK;
+ config.plll=(pll & CONFIG_PLLL_MASK);
+ return  0;
+}
+
+static int tea5767_pll_sync()
+{
+
+ log_debug("pll sync start...\r\n");
+
+ config.pllh=status.pllh;
+ config.plll=status.plll;
+ 
+ log_debug("pll sync done.\r\n");  
+ return 0;
 }
 
 
 int tea5767_cancle_search(void)
 {
 int result;
-config.sm=CONFIG_SEARCH_MODE_DISABLE ;
 
+config.sm=CONFIG_SEARCH_MODE_DISABLE ;
+config.mute=CONFIG_MUTE_OFF;
 result = tea5767_update();
 if(result == -1){
 log_error("cancle search error.\r\n");
@@ -335,28 +389,39 @@ log_debug("cancle search ok.\r\n");
 
 return 0;
 }
+
+
 int tea5767_search_up(uint8_t stop_level,uint32_t *freq)
 {
  int result;
  
+ tea5767_pll_increase_one_step();
+
+ config.mute=CONFIG_MUTE_ON;
  config.sm=CONFIG_SEARCH_MODE_ENABLE ;
  config.sud=CONFIG_SEARCH_DIR_UP;
  config.ssl=stop_level & CONFIG_SEARCH_STOP_LEVEL_MASK;
  
  result = tea5767_update();
  if(result == -1){
- log_error("update tea5767 error.\r\n");
+ log_error("search up error.\r\n");
  return -1;
  }
 
  while(1){
+ osDelay(50);
  result = tea5767_status();
  if(result == -1){
- log_error("read tea5767 error.\r\n");
+ log_error("search up error.\r\n");
  return -1;
  }
  
  if(status.rf == STATUS_IS_STATION_FOUND ){
+  tea5767_pll_sync();
+  result =tea5767_cancle_search();
+  if(result == -1){
+  return -1;
+ }
  if(status.blf== STATUS_IS_BAND_LIMIT_REACHED){
    log_warning("up band limit reached.\r\n");
    return 1;
@@ -365,38 +430,47 @@ int tea5767_search_up(uint8_t stop_level,uint32_t *freq)
    if(result ==-1){
    	return -1;
    	}
-   log_debug("station %d(*10kHz) found.\r\n",*freq);
-   break;
+  log_debug("station %d Hz found.\r\n",*freq);
+  break;
  	}
- }else{
- osDelay(10);
  }
- 	}
+ }
  
  return 0;
 }
 int tea5767_search_down(uint8_t stop_level,uint32_t *freq)
 {
-	int result;
-	
+    int result;
+    result =tea5767_pll_decrease_one_step();
+    if(result == -1){
+    log_error("search down error.\r\n");
+    return -1;
+    }
+    config.mute=CONFIG_MUTE_ON;
 	config.sm=CONFIG_SEARCH_MODE_ENABLE ;
-	config.sud=CONFIG_SEARCH_DIR_UP;
+	config.sud=CONFIG_SEARCH_DIR_DOWN;
 	config.ssl=stop_level & CONFIG_SEARCH_STOP_LEVEL_MASK;
 	
 	result = tea5767_update();
 	if(result == -1){
-	log_error("update tea5767 regs error.\r\n");
+	 log_error("search down error.\r\n");
 	return -1;
 	}
-	
+
 	while(1){
+    osDelay(50);
 	result = tea5767_status();
 	if(result == -1){
-	log_error("read tea5767 regs error.\r\n");
+	log_error("search down error.\r\n");
 	return -1;
 	}
 	
 	if(status.rf == STATUS_IS_STATION_FOUND ){
+    tea5767_pll_sync();
+    result =tea5767_cancle_search();
+    if(result == -1){
+    return -1;
+    }
 	if(status.blf== STATUS_IS_BAND_LIMIT_REACHED){
 	  log_warning("down band limit reached.\r\n");
 	  return 1;
@@ -405,14 +479,11 @@ int tea5767_search_down(uint8_t stop_level,uint32_t *freq)
       if(result ==-1){	
    	  return -1;
    	  }
-      log_debug("station %d(*10kHz) found.\r\n",*freq);
-	  break;
+     log_debug("station %d Hz found.\r\n",*freq);
+	 break;
 	   }
-	}else{
-	osDelay(10);
 	}
-	   }
-   tea5767_get_cur_freq(freq);
+	}
   
    return 0;
 
@@ -424,15 +495,18 @@ int tea5767_get_cur_freq(uint32_t *freq)
 {
 int result;
 uint16_t pll;
-pll=status.pllh << 8 |status.plll;
-*freq=  ((pll * QUARTZ / 4) - FILTER) / FREQ_UINIT;
 
 result =tea5767_status();
 if(result == -1){
 log_error("get freq error.\r\n");
 return -1;
 }
-log_debug("get cur freq: %f MHz.ok.\r\n",(float)(*freq)/(MHZ_VALUE/FREQ_UINIT));
+pll=(uint16_t)status.pllh << 8 |status.plll;
+*freq= (pll * (QUARTZ / 4)) - FILTER;
+
+log_debug("get cur freq: %d Hz.ok.\r\n",*freq);
+log_debug("ifs: %d.\r\n",status.ifs);
+log_debug("level: %d.\r\n",status.lev);
 return 0;
 }
 
@@ -444,13 +518,13 @@ int result;
 uint16_t pll;
 
 if(freq > BAND_LIMIT_UP || freq < BAND_LIMIT_DOWN){
-log_error("freq :%d (*10kHz) is invalid.\r\n",freq);
+log_error("freq :%d Hz is invalid.\r\n",freq);
 return -1;
 }
 
-pll = 4 * (freq * FREQ_UINIT + FILTER) / QUARTZ;
-status.pllh=(pll >> 8) & CONFIG_PLLH_MASK;
-status.plll=(pll & CONFIG_PLLL_MASK);
+pll = (freq + FILTER) / (QUARTZ/4);
+config.pllh=(pll >> 8) & CONFIG_PLLH_MASK;
+config.plll=(pll & CONFIG_PLLL_MASK);
 
 result =tea5767_update();
 if(result == -1){
@@ -458,7 +532,7 @@ log_error("set freq error.\r\n");
 return -1;
 }
 
-log_debug("set freq: %f MHz ok.\r\n",(float)freq/(MHZ_VALUE/FREQ_UINIT));
+log_debug("set freq: %d Hz) ok.\r\n",freq);
 
 return 0;
 }

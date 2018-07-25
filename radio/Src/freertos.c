@@ -145,7 +145,7 @@ void StartDefaultTask(void const * argument)
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
   uint8_t cnt;
-  uint8_t cmd[3];
+  uint8_t cmd[5];
   uint8_t id;
   int result;
   uint32_t freq;
@@ -154,8 +154,8 @@ void StartDefaultTask(void const * argument)
 
   for(;;)
   {
-    cnt = SEGGER_RTT_Read(0,cmd,3);
-    if(cnt ==3){      
+    cnt = SEGGER_RTT_Read(0,cmd,5);
+    if(cnt >=3){      
     switch(cmd[0])
     {
     case 'i':
@@ -165,18 +165,31 @@ void StartDefaultTask(void const * argument)
      result = tea5767_init();   
      break; 
     case 'u':
-    result = tea5767_search_up(SEARCH_STOP_LEVEL_5, &freq);   
+    result = tea5767_search_up(SEARCH_STOP_LEVEL_10, &freq);   
     break;
     case 'd':
-    result = tea5767_search_down(SEARCH_STOP_LEVEL_5, &freq);   
+    result = tea5767_search_down(SEARCH_STOP_LEVEL_10, &freq);   
     break;   
     
     case 's':
-    result = tea5767_set_cur_freq((cmd[1]-'0')*1000);   
+    result = tea5767_set_cur_freq((cmd[1]-'0')*10000000+(cmd[2]-'0')*1000000+(cmd[3]-'0')*100000);   
     break;
     case 'g':
     result = tea5767_get_cur_freq(&freq);   
     break;  
+    case 'o':
+    result =tea5767_mute_on();
+    break;
+     case 'f':
+    result =tea5767_mute_off();
+    break;
+    
+    case 'O':
+    result =tea5767_stereo_on();
+    break;
+     case 'F':
+    result =tea5767_stereo_off();
+    break;
     
     case 'c':
     result = tea5767_cancle_search();   

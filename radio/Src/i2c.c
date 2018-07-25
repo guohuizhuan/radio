@@ -98,6 +98,8 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* i2cHandle)
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     /* I2C1 clock enable */
+   // __HAL_AFIO_REMAP_I2C1_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_I2C1_CLK_ENABLE();
 
     /* I2C1 interrupt Init */
@@ -106,7 +108,8 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* i2cHandle)
     HAL_NVIC_SetPriority(I2C1_ER_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(I2C1_ER_IRQn);
   /* USER CODE BEGIN I2C1_MspInit 1 */
-
+   I2C1->CR1|=(1<<15);
+   I2C1->CR1&=~(1<<15);
   /* USER CODE END I2C1_MspInit 1 */
   }
 }
