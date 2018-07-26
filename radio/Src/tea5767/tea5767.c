@@ -207,7 +207,7 @@ int result;
 log_debug("init start...\r\n");
 
 config.reg1=0;
-config.mute=CONFIG_MUTE_ON;
+config.mute=CONFIG_MUTE_OFF;
 config.sm=CONFIG_SEARCH_MODE_DISABLE;
 config.reg2=0;
 config.reg3=0;

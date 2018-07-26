@@ -34,7 +34,7 @@ static int8_t   temperature;
 
 
 
-#define  INTERVAL_FREQ_THRESHOLD          10000
+#define  INTERVAL_FREQ_THRESHOLD          32000
 
 #define  INTERVAL_TEMPERATURE_THRESHOLD   1   
 #define  UV25                             1430000
@@ -103,7 +103,7 @@ void radio_task(void const * argument)
   static uint32_t freq;
   static int8_t   t;
   char *temperature_str;
-  
+  tea5767_init();
   while(1){
   signals = osSignalWait(RADIO_TASK_SAMPLE_COMPLETED_SIGNAL,RADIO_TASK_TIMEOUT);
   
@@ -112,8 +112,8 @@ void radio_task(void const * argument)
   
 /*频率处理*/
    freq= 87500000+adc_average[0]*((108000000-87500000)/4096);  
-   log_debug("freq:%d.\r\n",freq);
-/*
+   //log_debug("freq:%d.\r\n",freq);
+
    if((freq > frequence? freq-frequence : frequence -freq) >= INTERVAL_FREQ_THRESHOLD){
 tea5767_set_freq:
    result =tea5767_set_cur_freq(freq);
@@ -127,9 +127,10 @@ tea5767_set_freq:
    frequence=freq;
    log_debug("radio event set freq ok.\r\n");
    }
-*/
+
   
-   /*温度处理*/
+ /*温度处理*/
+ /*
    t = 25+(UV25 - (int32_t)(adc_average[1]*3300000/4096))/SCATE_RATE_UV_PER_C;
    
    if((t > temperature ? t-temperature:temperature -t ) >= INTERVAL_TEMPERATURE_THRESHOLD){
@@ -139,6 +140,7 @@ tea5767_set_freq:
     lib1602a_display_str(temperature_str,LIB1602A_POS_LINE_2,10);
     log_debug("lcd temperature :%s.\r\n",temperature_str);  
   }
+*/
   
 
   }
