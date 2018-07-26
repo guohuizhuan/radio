@@ -349,10 +349,11 @@
                     <state>$PROJ_DIR$/../Middlewares/Third_Party/FreeRTOS/Source/include</state>
                     <state>$PROJ_DIR$/../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS</state>
                     <state>$PROJ_DIR$/../Drivers/CMSIS/Include</state>
+                    <state>$PROJ_DIR$/../Src/lcd1602a</state>
                     <state>$PROJ_DIR$/../Src/tea5767</state>
-                    <state>$PROJ_DIR$/../debug/log</state>
-                    <state>$PROJ_DIR$/../debug/log/SEGGER_RTT_V612j/RTT</state>
-                    <state>$PROJ_DIR$/../debug/log/SEGGER_RTT_V612j/Syscalls</state>
+                    <state>$PROJ_DIR$/../Src/debug/log</state>
+                    <state>$PROJ_DIR$/../Src/debug/log/SEGGER_RTT_V612j/RTT</state>
+                    <state>$PROJ_DIR$/../Src/debug/log/SEGGER_RTT_V612j/Syscalls</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1038,11 +1039,44 @@
         <group>
             <name>User</name>
             <group>
+                <name>debug</name>
+                <group>
+                    <name>log</name>
+                    <group>
+                        <name>segger_rtt</name>
+                        <file>
+                            <name>$PROJ_DIR$\..\Src\debug\log\SEGGER_RTT_V612j\RTT\SEGGER_RTT.c</name>
+                        </file>
+                        <file>
+                            <name>$PROJ_DIR$\..\Src\debug\log\SEGGER_RTT_V612j\RTT\SEGGER_RTT_printf.c</name>
+                        </file>
+                        <file>
+                            <name>$PROJ_DIR$\..\Src\debug\log\SEGGER_RTT_V612j\Syscalls\SEGGER_RTT_Syscalls_IAR.c</name>
+                        </file>
+                    </group>
+                    <file>
+                        <name>$PROJ_DIR$\..\Src\debug\log\log.c</name>
+                    </file>
+                </group>
+            </group>
+            <group>
+                <name>lcd1602a</name>
+                <file>
+                    <name>$PROJ_DIR$\..\Src\lcd1602a\lib1602a.c</name>
+                </file>
+            </group>
+            <group>
                 <name>tea5767</name>
                 <file>
                     <name>$PROJ_DIR$\..\Src\tea5767\tea5767.c</name>
                 </file>
             </group>
+            <file>
+                <name>$PROJ_DIR$\..\Src\adc.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Src\dma.c</name>
+            </file>
             <file>
                 <name>$PROJ_DIR$\..\Src\freertos.c</name>
             </file>
@@ -1054,6 +1088,9 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Src\main.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Src\radio.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Src\stm32f1xx_hal_msp.c</name>
@@ -1075,6 +1112,12 @@
             <name>STM32F1xx_HAL_Driver</name>
             <file>
                 <name>$PROJ_DIR$\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_adc.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_adc_ex.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_cortex.c</name>
@@ -1113,24 +1156,6 @@
                 <name>$PROJ_DIR$\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_tim_ex.c</name>
             </file>
         </group>
-    </group>
-    <group>
-        <name>log</name>
-        <group>
-            <name>segger_rtt</name>
-            <file>
-                <name>$PROJ_DIR$\..\debug\log\SEGGER_RTT_V612j\RTT\SEGGER_RTT.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\debug\log\SEGGER_RTT_V612j\RTT\SEGGER_RTT_printf.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\debug\log\SEGGER_RTT_V612j\Syscalls\SEGGER_RTT_Syscalls_IAR.c</name>
-            </file>
-        </group>
-        <file>
-            <name>$PROJ_DIR$\..\debug\log\log.c</name>
-        </file>
     </group>
     <group>
         <name>Middlewares</name>

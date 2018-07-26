@@ -51,9 +51,10 @@
 #include "task.h"
 #include "cmsis_os.h"
 
-/* USER CODE BEGIN Includes */    
+/* USER CODE BEGIN Includes */     
 #include "i2c.h"
 #include "tea5767.h"
+#include "radio.h"
 #include "log.h"
 #define  LOG_MODULE_LEVEL    LOG_LEVEL_DEBUG
 #define  LOG_MODULE_NAME     "[freertos]"
@@ -131,6 +132,11 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
+  osThreadDef(radio_task, radio_task, osPriorityNormal, 0, 128);
+  radio_task_hdl = osThreadCreate(osThread(radio_task), NULL);
+  
+  osThreadDef(adc_task, adc_task, osPriorityNormal, 0, 128);
+  adc_task_hdl = osThreadCreate(osThread(adc_task), NULL);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
