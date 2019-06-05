@@ -1,114 +1,227 @@
 #ifndef __LIB1602A_H__
 #define __LIB1602A_H__
 
+#ifdef   __cplusplus
+#define  LIB1602A_BEGIN        extern "C" {
+#define  LIB1602A_END          }
+#else
+#define  LIB1602A_BEGIN      
+#define  LIB1602A_END       
+#endif
+
 #ifndef  NULL 
 #define  NULL             (void*)0
 #endif
 
-typedef  enum 
-{
-LIB1602A_FALSE,
-LIB1602A_TRUE
-}lib1602a_bool_t;
+LIB1602A_BEGIN
 
 
 typedef struct
 {
- void (*io_e_set)(void);
- void (*io_e_clr)(void);
- void (*io_rs_set)(void);
- void (*io_rs_clr)(void);
- void (*io_rw_set)(void);
- void (*io_rw_clr)(void);
- uint8_t (*io_data_in)(void);
- void (*io_data_out)(uint8_t);
- void (*io_delay_ms)(uint8_t);
+    uint8_t is_registered;
+    void (*io_e_set)(void);
+    void (*io_e_clr)(void);
+    void (*io_rs_set)(void);
+    void (*io_rs_clr)(void);
+    void (*io_rw_set)(void);
+    void (*io_rw_clr)(void);
+    uint8_t (*io_8bits_in)(void);
+    void (*io_8bits_out)(uint8_t);
+    void (*io_delay_ms)(uint8_t);
 }lib1602a_io_driver_t;
 
 
 typedef enum
 {
- LIB1602A_STATUS_OK =0,
- LIB1602A_STATUS_ERR,
- LIB1602A_STATUS_RDY,
- LIB1602_STATUS_BUSY,
- LIB1602_STATUS_WR_TIMEOUT,
- LIB1602_STATUS_RD_TIMEOUT
-}lib1602a_status_t;
-
-
-typedef enum
-{
-LIB1602A_POS_LINE_1,
-LIB1602A_POS_LINE_2	
-}lib1602a_pos_line_t;
-
-typedef enum
-{
-LIB1602A_ADDR_DIR_INCREASE,
-LIB1602A_ADDR_DIR_DECREASE
+    LIB1602A_ADDR_DIR_INCREASE,
+    LIB1602A_ADDR_DIR_DECREASE
 }lib1602a_addr_dir_t;
 
 typedef enum
 {
-LIB1602A_SCREEN_DISPLAY_ON,
-LIB1602A_SCREEN_DISPLAY_OFF
+    /*写入一个数据后，屏幕自动左移或者右移一个字符宽度*/
+    LIB1602A_AUTO_SHIFT_SCREEN,
+    /*写入一个数据后，屏幕不自动移动*/
+    LIB1602A_NO_AUTO_SHIFT_SCREEN	
+}lib1602a_auto_shift_screen_t;
+
+
+typedef struct 
+{
+    lib1602a_addr_dir_t  dir;
+    lib1602a_auto_shift_screen_t  auto_shift;
+}lib1602a_mode_t;
+
+  
+typedef enum
+{
+    LIB1602A_SCREEN_DISPLAY_ON,
+    LIB1602A_SCREEN_DISPLAY_OFF
 }lib1602a_screen_display_t;
 
 
 
 typedef enum
 {
-LIB1602A_CURSOR_DISPLAY_ON,
-LIB1602A_CURSOR_DISPLAY_OFF
+    LIB1602A_CURSOR_DISPLAY_ON,
+    LIB1602A_CURSOR_DISPLAY_OFF
 }lib1602a_cursor_display_t;
 
 
 typedef enum
 {
-LIB1602A_CURSOR_TYPE_NO_BLINK,
-LIB1602A_CURSOR_TYPE_BLINK
+    LIB1602A_CURSOR_TYPE_NO_BLINK,
+    LIB1602A_CURSOR_TYPE_BLINK
 }lib1602a_cursor_type_t;
 
 typedef struct
 {
-lib1602a_addr_dir_t        addr_dir;
-lib1602a_bool_t            shift_screen;
-lib1602a_screen_display_t  screen_display;
-lib1602a_cursor_display_t  cursor_display;
-lib1602a_cursor_type_t     cursor_type;
+    lib1602a_screen_display_t screen_display;
+    lib1602a_cursor_display_t cursor_display;
+    lib1602a_cursor_type_t cursor_type;
+}lib1602a_display_t;
+
+
+
+typedef struct
+{
+    lib1602a_mode_t mode;
+    lib1602a_display_t display;
 }lib1602a_config_t;
 
+typedef enum
+{
+    LIB1602A_POS_LINE_1,
+    LIB1602A_POS_LINE_2	
+}lib1602a_pos_line_t;  
+
+/*
+* @brief 1602a注册io驱动
+* @param io_driver 驱动指针
+* @param
+* @return 0：成功 -1：失败
+* @note
+*/
+int lib1602a_register_io_driver(lib1602a_io_driver_t *io_driver);
+
+/*
+* @brief 1602a是否忙
+* @param 无
+* @param
+* @return 0：否 其他：是
+* @note
+*/
+uint8_t lib1602a_is_busy(void);
+
+/*
+* @brief 1602a配置参数
+* @param 配置参数指针
+* @param 
+* @return 0：成功 -1：失败
+* @note
+*/
+int lib1602a_config(lib1602a_config_t *config);
+
+/*
+* @brief 1602a屏幕左移
+* @param 无
+* @param 
+* @return 0：成功 -1：失败
+* @note
+*/
+int lib1602a_scroll_screen_left(void);
+
+/*
+* @brief 1602a屏幕右移
+* @param 无
+* @param 
+* @return 0：成功 -1：失败
+* @note
+*/
+
+int lib1602a_scroll_screen_right(void);
+
+/*
+* @brief 1602a清屏
+* @param 无
+* @param 
+* @return 0：成功 -1：失败
+* @note
+*/
+int lib1602a_clear_screen(void);
+
+/*
+* @brief 1602a读取当前光标地址
+* @param 无
+* @param
+* @return 光标地址
+* @note
+*/
+uint8_t lib1602a_get_cursor_position(void);
+
+/*
+* @brief 1602a设置光标位置
+* @param line 行号
+* @param x 列号 
+* @return 0：成功 -1：失败
+* @note x最大值为LIB1602A_CHARACTERS_CNT_MAX_PER_LINE
+*/
+int lib1602a_set_cursor_position(lib1602a_pos_line_t line ,uint8_t x);
+
+/*
+* @brief 1602a光标左移
+* @param 无
+* @param 
+* @return 0：成功 -1：失败
+* @note
+*/
+int lib1602a_move_cursor_left(void);
+
+/*
+* @brief 1602a光标右移
+* @param 无
+* @param 
+* @return 0：成功 -1：失败
+* @note
+*/
+int lib1602a_move_cursor_right(void);
+
+/*
+* @brief 1602a光标上移
+* @param 无
+* @param 
+* @return 0：成功 -1：失败
+* @note
+*/
+int lib1602a_move_cursor_up(void);
+
+/*
+* @brief 1602a光标下移
+* @param 无
+* @param 
+* @return 0：成功 -1：失败
+* @note
+*/
+int lib1602a_move_cursor_down(void);
+
+/*
+* @brief 1602a在指定位置显示字符串
+* @param line 行号
+* @param x 列号 
+* @return 0：成功 -1：失败
+* @note x最大值为LIB1602A_CHARACTERS_CNT_MAX_PER_LINE
+*/
+int lib1602a_display_string(lib1602a_pos_line_t line,uint8_t x,const char *str);
 
 
 
-lib1602a_status_t lib1602a_register_io_driver(lib1602a_io_driver_t *ptr_io_drv);
-lib1602a_status_t lib1602a_config(lib1602a_config_t *ptr_config);
-lib1602a_status_t lib1602a_screen_cursor_ctrl(lib1602a_screen_display_t screen,lib1602a_cursor_display_t cursor,lib1602a_cursor_type_t cursor_type);
-
-lib1602a_status_t lib1602a_scroll_screen_left(void);
-lib1602a_status_t lib1602a_scroll_screen_right(void);
-lib1602a_status_t lib1602a_clear_screen(void);
-
-lib1602a_status_t lib1602a_move_cursor_left(void);
-lib1602a_status_t lib1602a_move_cursor_right(void);
-
-lib1602a_status_t lib1602a_set_cursor_pos(lib1602a_pos_line_t line ,uint8_t x);
-lib1602a_status_t lib1602a_get_cursor_pos(uint8_t *ptr_pos);
-
-lib1602a_status_t lib1602a_display_str(const char *ptr_str,lib1602a_pos_line_t line ,uint8_t x);
-lib1602a_status_t lib1602a_int_to_str_hex(char **ptr_str,int32_t num ,uint8_t width,lib1602a_bool_t prifix);
-lib1602a_status_t lib1602a_int_to_str_dec(char **ptr_str,int32_t num ,uint8_t width); 
 
 
 
 
 
 
-
-
-
-
+LIB1602A_END
 
 
 

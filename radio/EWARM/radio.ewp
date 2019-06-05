@@ -1087,12 +1087,24 @@
                 </file>
             </group>
             <group>
+                <name>memory_poll</name>
+                <file>
+                    <name>$PROJ_DIR$\..\Src\memory_poll\memory_pool.c</name>
+                </file>
+            </group>
+            <group>
                 <name>tasks</name>
+                <file>
+                    <name>$PROJ_DIR$\..\Src\tasks\adc_task.c</name>
+                </file>
                 <file>
                     <name>$PROJ_DIR$\..\Src\tasks\debug_task.c</name>
                 </file>
                 <file>
                     <name>$PROJ_DIR$\..\Src\radio.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Src\tasks\tasks_init.c</name>
                 </file>
             </group>
             <group>

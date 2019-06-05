@@ -2,17 +2,6 @@
 #include "log.h"
 
 
-#define BAND_LIMIT_REGION_EUROPE        1
-#define BAND_LIMIT_REGION_JAPAN         2
-
-#define BAND_LIMIT_REGION               BAND_LIMIT_REGION_EUROPE
-
-#define FREQ_REF                        32768
-#define FREQ_IF                         225000
-
-
-
-
 typedef struct 
 {
     union {
@@ -179,13 +168,16 @@ typedef struct
 #define TEA5767_READ_ADDR               0xC1 // I2C address of TEA5767
  
 #if (BAND_LIMIT_REGION == BAND_LIMIT_REGION_EUROPE)
-#define  BAND_LIMIT_UP              (108*1000000)
-#define  BAND_LIMIT_DOWN            (875*100000)
+#define  BAND_LIMIT_UP                  (108*1000000)
+#define  BAND_LIMIT_DOWN                (875*100000)
 #else
-#define  BAND_LIMIT_UP              (91*1000000)
-#define  BAND_LIMIT_DOWN            (76*1000000)
+#define  BAND_LIMIT_UP                  (91*1000000)
+#define  BAND_LIMIT_DOWN                (76*1000000)
 #endif
 
+
+#define  FREQ_REF                        32768
+#define  FREQ_IF                         225000
 
 
 
@@ -220,10 +212,11 @@ static int tea5767_write(uint8_t addr,uint8_t *src,uint32_t size)
 
 
 /*
-* @brief 
-* @param
-* @param
-* @return 
+* @brief 读寄存器操作
+* @param addr tea5767器件读操作地址
+* @param dst 数据存储的地址指针
+* @param size 读取的数量
+* @return 0：成功 -1：失败
 * @note
 */
 static int tea5767_read(uint8_t addr,uint8_t *dst,uint32_t size)
@@ -239,12 +232,31 @@ static int tea5767_read(uint8_t addr,uint8_t *dst,uint32_t size)
     return 0;
 }
 
+/*
+* @brief 读tea5767状态寄存器
+* @param status 状态结构指针
+* @param
+* @return 0：成功 -1：失败
+* @note
+*/
+static int tea5767_read_status(tea5767_status_t *status)
+{
+    int rc;
+    rc = tea5767_read(TEA5767_READ_ADDR,(uint8_t *)status,sizeof(tea5767_status_t));
+    if (rc != 0) {
+        log_error("tea5767 err in read status.\r\n");
+        return -1;
+    }
+
+    return 0;
+
+}
 
 /*
-* @brief 
+* @brief 获取tea5767缓存的配置参数
+* @param config 配置参数指针
 * @param
-* @param
-* @return 
+* @return 0：成功 -1：失败
 * @note
 */
 static int tea5767_get_config(tea5767_config_t *config)
@@ -259,10 +271,10 @@ static int tea5767_get_config(tea5767_config_t *config)
 
 
 /*
-* @brief 
+* @brief 更新tea5767缓存的参数
+* @param config 新配置参数指针
 * @param
-* @param
-* @return 
+* @return 0：成功 -1：失败
 * @note
 */
 static int tea5767_update_config(tea5767_config_t *config)
@@ -271,50 +283,113 @@ static int tea5767_update_config(tea5767_config_t *config)
         return -1;
     }
 
-    tea5767_config =*config;
+    tea5767_config = *config;
+    return 0;
+}
+
+/*
+* @brief 更新配置参数到tea5767芯片内部并缓存
+* @param config 配置参数指针
+* @param
+* @return 0：成功 -1：失败
+* @note
+*/
+static int tea5767_flush_config(tea5767_config_t *config)
+{
+    int rc;
+    rc = tea5767_write(TEA5767_WRITE_ADDR,(uint8_t *)config,sizeof(tea5767_config_t));
+    if (rc != 0) {
+        return -1;
+    }
+    /*每一次flush成功都要缓存配置参数*/
+    tea5767_config = *config;
+
     return 0;
 }
 
 
+
 /*
-* @brief 
+* @brief 根据hlsi和pll计算频率
+* @param hlsi injection值
+* @param pll 频率锁相环值
+* @return 频率值
+* @note
+*/
+static uint32_t tea5767_calculate_freq(uint8_t hlsi,uint16_t pll)
+{
+    uint32_t freq;
+    
+    if (hlsi == CONFIG_HLSI_HIGH) {
+        freq = (uint32_t)pll * FREQ_REF / 4 - FREQ_IF;
+    } else {
+        freq = (uint32_t)pll * FREQ_REF / 4 + FREQ_IF;
+    }
+
+    return freq;
+}
+
+/*
+* @brief 根据hlsi和freq计算锁相环值
+* @param hlsi injection值
+* @param freq 频率值
+* @return 频率锁相环值
+* @note
+*/
+static uint16_t tea5767_calculate_pll(uint8_t hlsi,uint32_t freq)
+{
+    uint16_t pll;
+
+    if (hlsi == CONFIG_HLSI_HIGH) {
+        pll = (freq + FREQ_IF) * 4 / FREQ_REF;
+    } else {
+        pll = (freq - FREQ_IF) * 4 / FREQ_REF;
+    }
+
+    return pll;
+
+}
+
+/*
+* @brief tea5767初始化
+* @param 无
 * @param
-* @param
-* @return 
+* @return 0：成功 -1：失败
 * @note
 */
 int tea5767_init(void) 
 {
     int rc;
+    tea5767_config_t config;
     
     log_debug("tea5767 init...\r\n");
 
-    tea5767_config.reg1 = 0;
-    tea5767_config.mute = CONFIG_MUTE_ON;
-    tea5767_config.sm = CONFIG_SEARCH_MODE_DISABLE;
-    tea5767_config.reg2 = 0;
-    tea5767_config.reg3 = 0;
-    tea5767_config.hlsi = CONFIG_HLSI_HIGH;
+    config.reg1 = 0;
+    config.mute = CONFIG_MUTE_ON;
+    config.sm = CONFIG_SEARCH_MODE_DISABLE;
+    config.reg2 = 0;
+    config.reg3 = 0;
+    config.hlsi = CONFIG_HLSI_HIGH;
 
-    tea5767_config.reg4 = 0;
-    tea5767_config.hcc = CONFIG_HIGH_CUT_CONTROL_ON;
-    tea5767_config.smute = CONFIG_SOFT_MUTE_ON;
-    tea5767_config.snc = CONFIG_STEREO_NOISE_CANCLE_ON;
-    tea5767_config.stby = CONFIG_EXIT_STANDBY_MODE;
-    tea5767_config.xtal = CONFIG_XTAL_32768HZ;
+    config.reg4 = 0;
+    config.hcc = CONFIG_HIGH_CUT_CONTROL_ON;
+    config.smute = CONFIG_SOFT_MUTE_ON;
+    config.snc = CONFIG_STEREO_NOISE_CANCLE_ON;
+    config.stby = CONFIG_EXIT_STANDBY_MODE;
+    config.xtal = CONFIG_XTAL_32768HZ;
 
 #if (BAND_LIMIT_REGION == BAND_LIMIT_REGION_EUROPE)
-    tea5767_config.bl = CONFIG_BAND_LIMIT_EUROPE;
+    config.bl = CONFIG_BAND_LIMIT_EUROPE;
 #else
-    tea5767_config.bl=CONFIG_BAND_LIMIT_JAPANESE;
+    config.bl=CONFIG_BAND_LIMIT_JAPANESE;
 #endif
 
-    tea5767_config.reg5 = 0;
-    tea5767_config.dtc = 1;
+    config.reg5 = 0;
+    config.dtc = 1;
 
-    rc = tea5767_write(TEA5767_WRITE_ADDR,(uint8_t *)&tea5767_config,sizeof(tea5767_config_t));
+    rc = tea5767_flush_config(&config);
     if (rc != 0) {
-        log_error("tea5767 init error.\r\n");
+        log_error("tea5767 flush config error. init error.\r\n");
         return -1;
     }
 
@@ -325,18 +400,18 @@ int tea5767_init(void)
 
 
 /*
-* @brief 
+* @brief 读tea5767内部id
+* @param id id指针
 * @param
-* @param
-* @return 
+* @return 0：成功 -1：失败
 * @note
 */
 int tea5767_read_id(uint8_t *id)
 {
     int rc;
     tea5767_status_t status;
-    
-    rc = tea5767_read(TEA5767_READ_ADDR,(uint8_t *)&status,sizeof(tea5767_status_t));
+
+    rc = tea5767_read_status(&status)
     if (rc != 0) {
         log_error("tea5767 read id error.\r\n");
         return -1;
@@ -349,10 +424,10 @@ int tea5767_read_id(uint8_t *id)
 
 
 /*
-* @brief 
+* @brief 读tea5767电台信号强度
+* @param level 信号强度指针
 * @param
-* @param
-* @return 
+* @return 0：成功 -1：失败
 * @note
 */
 int tea5767_read_level(uint8_t *level)
@@ -360,8 +435,9 @@ int tea5767_read_level(uint8_t *level)
     int rc;
     tea5767_status_t status;
     
-    rc = tea5767_read(TEA5767_READ_ADDR,(uint8_t *)&status,sizeof(tea5767_status_t));
+    rc = tea5767_read_status(&status);
     if (rc != 0) {
+        log_error("tea5767 read level error.\r\n");
         return -1;
     }
     *level = status.lev;
@@ -389,14 +465,13 @@ int tea5767_injection(int dir)
     } else {
         config->hlsi == CONFIG_HLSI_LOW;
     }
-
-    rc = tea5767_write(TEA5767_WRITE_ADDR,(uint8_t *)&config,sizeof(tea5767_config_t));
+    
+    rc = tea5767_flush_config(&config);
     if (rc != 0) {
         log_error("injection error.\r\n");
         return -1;
     }
     
-    tea5767_update_config(&config);
     log_debug("injection ok.\r\n");
 
     return 0;
@@ -404,10 +479,10 @@ int tea5767_injection(int dir)
 
 
 /*
-* @brief 
+* @brief 打开tea5767静音
+* @param 无
 * @param
-* @param
-* @return 
+* @return 0：成功 -1：失败
 * @note
 */
 int tea5767_mute_on(void)
@@ -419,13 +494,12 @@ int tea5767_mute_on(void)
 
     config.mute = CONFIG_MUTE_ON;
 
-    rc = tea5767_write(TEA5767_WRITE_ADDR,(uint8_t *)&config,sizeof(tea5767_config_t));
+    rc = tea5767_flush_config(&config);
     if (rc != 0) {
         log_error("mute on error.\r\n");
         return -1;
     }
     
-    tea5767_update_config(&config);
     log_debug("mute on ok.\r\n");
 
     return 0;
@@ -433,10 +507,10 @@ int tea5767_mute_on(void)
 
 
 /*
-* @brief 
+* @brief 关闭tea5767静音
+* @param 无
 * @param
-* @param
-* @return 
+* @return 0：成功 -1：失败
 * @note
 */
 int tea5767_mute_off(void)
@@ -448,22 +522,22 @@ int tea5767_mute_off(void)
 
     config.mute = CONFIG_MUTE_OFF;
 
-    rc = tea5767_write(TEA5767_WRITE_ADDR,(uint8_t *)&config,sizeof(tea5767_config_t));
+    rc = tea5767_flush_config(&config);
     if (rc != 0) {
         log_error("mute off error.\r\n");
         return -1;
     }
     
-    tea5767_update_config(&config);
     log_debug("mute off ok.\r\n");
 
     return 0;
 }
+
 /*
-* @brief 
+* @brief 打开tea5767立体声
+* @param 无
 * @param
-* @param
-* @return 
+* @return 0：成功 -1：失败
 * @note
 */
 int tea5767_stereo_on(void)
@@ -475,13 +549,12 @@ int tea5767_stereo_on(void)
 
     config.ms = CONFIG_MONO_OFF_STEREO_ON;
 
-    rc = tea5767_write(TEA5767_WRITE_ADDR,(uint8_t *)&config,sizeof(tea5767_config_t));
+    rc = tea5767_flush_config(&config);
     if (rc != 0) {
         log_error("stereo on error.\r\n");
         return -1;
     }
 
-    tea5767_update_config(&config);
     log_debug("stereo on ok.\r\n");
 
     return 0;
@@ -489,10 +562,10 @@ int tea5767_stereo_on(void)
 
 
 /*
-* @brief 
+* @brief 关闭tea5767立体声
+* @param 无
 * @param
-* @param
-* @return 
+* @return 0：成功 -1：失败
 * @note
 */
 int tea5767_stereo_off(void)
@@ -504,90 +577,83 @@ int tea5767_stereo_off(void)
 
     config.ms = CONFIG_MONO_ON_STEREO_OFF;
 
-    rc = tea5767_write(TEA5767_WRITE_ADDR,(uint8_t *)&config,sizeof(tea5767_config_t));
+    rc = tea5767_flush_config(&config);
     if (rc != 0) {
         log_error("stereo off error.\r\n");
         return -1;
     }
     
-    tea5767_update_config(&config);
     log_debug("stereo off ok.\r\n");
     
     return 0;
 }
 
 /*
-* @brief 
+* @brief 获取tea5767电台频率
+* @param 无
 * @param
-* @param
-* @return 
+* @return > 0：成功获取电台的频率 0：失败
 * @note
 */
-int32_t tea5767_get_freq(void)
+uint32_t tea5767_get_freq(void)
 {
     uint32_t freq;
     uint16_t pll;
-    tea5767_status_t status;
     tea5767_config_t config;
+    tea5767_status_t status;
 
-    rc = tea5767_read(TEA5767_READ_ADDR,(uint8_t *)&status,sizeof(tea5767_status_t));
+    rc = tea5767_read_status(&status);
     if (rc != 0) {
-        return -1;
-    }
-    
-    tea5767_get_config(&config);       
-    pll = (uint16_t)status.pllh << 8 | status.plll;
-    if (config->hlsi == CONFIG_HLSI_HIGH) {
-        freq = (int32_t)pll * FREQ_REF / 4 - FREQ_IF;
-    } else {
-        freq = (int32_t)pll * FREQ_REF / 4 + FREQ_IF;
+        log_error("tea5767 get freq error.\r\n");
+        return 0;
     }
 
+    tea5767_get_config(&config);
+    pll = (uint16_t)status.pllh << 8 | status.plll;
+    freq = tea5767_calculate_freq(config.hlsi, uint16_t pll)
+    
+    log_debug("tea5767 get freq:%d ok.\r\n",freq);
     return freq;
+    
 }
 
 /*
-* @brief 
+* @brief 设置tea5767电台频率
+* @param freq 要设置的频率
 * @param
-* @param
-* @return 
+* @return 0：成功 -1：失败
 * @note
 */
-int tea5767_set_freq(int32_t freq)
+int tea5767_set_freq(uint32_t freq)
 {
     uint16_t pll;
     tea5767_config_t config;
     
     tea5767_get_config(&config);
     
-    if (config->hlsi == CONFIG_HLSI_HIGH) {
-        pll = (freq + FREQ_IF) * 4 / FREQ_REF;
-    } else {
-        pll = (freq - FREQ_IF) * 4 / FREQ_REF;
-    }
-
+    pll = tea5767_calculate_pll(config.hlsi,freq);
     config.pllh = pll >> 8;
     config.plll = pll & 0xFF;
-    rc = tea5767_write(TEA5767_WRITE_ADDR,(uint8_t*)&config, sizeof(tea5767_config_t));
+    rc = tea5767_flush_config(&config);
     if (rc != 0) {
-        return -1;;
+        log_error("set freq error.\r\n");
+        return -1;
     }
     
-    /*更新缓存的tea5767配置参数，保证参数实时更新*/
-    tea5767_update_config(&config);
+    log_debug("set freq ok.\r\n");
 
     return 0;
 }
 
 
 /*
-* @brief 
+* @brief tea5767频率步进
+* @param 步进的频率值
 * @param
-* @param
-* @return 
+* @return 0：成功 -1：失败
 * @note
 */
-static int tea5767_freq_step(int32_t freq_step)
+int tea5767_freq_step(int32_t freq_step)
 {
     int rc;
     int32_t freq;
@@ -622,31 +688,29 @@ err_exit:
 
 
 /*
-* @brief 
-* @param
-* @param
-* @return 
-* @note
+* @brief tea5767自动搜索电台
+* @param dir 搜索方向
+* @param stop_level 搜索停止信号强度
+* @return > 0：成功搜索的电台频率 0：失败
+* @note dir >= 0 当前频率向上搜索 < 0 当前频率向下搜索
 */
-int32_t tea5767_search(int dir,uint8_t stop_level,uint32_t freq_start)
+uint32_t tea5767_search(int dir,uint8_t stop_level)
 {
     int rc;
     int is_ok = 0;
+    uint32_t freq;
+    uint16_t pll;
+    
     tea5767_status_t status;
     tea5767_config_t config;
 
     log_debug("tea5767 start search...\r\n");
 
-    rc = tea5767_set_freq(freq);
-    if (rc != 0) {
-        goto err_exit;
-    }
-    
     tea5767_get_config(&config);
     
     config.mute = CONFIG_MUTE_ON;
     config.sm = CONFIG_SEARCH_MODE_ENABLE ;
-    if (dir > 0) {
+    if (dir >= 0) {
         config.sud = CONFIG_SEARCH_DIR_UP;
     } else {
         config.sud = CONFIG_SEARCH_DIR_DOWN;
@@ -654,47 +718,56 @@ int32_t tea5767_search(int dir,uint8_t stop_level,uint32_t freq_start)
     config.ssl = stop_level & CONFIG_SEARCH_STOP_LEVEL_MASK;
     
 
-    rc = tea5767_write(TEA5767_WRITE_ADDR,(uint8_t*)&config, sizeof(tea5767_config_t));
+    rc = tea5767_flush_config(&config);
     if (rc != 0) {
         goto err_exit;
     }
 
+    
     while (!is_ok)
-        rc = tea5767_read(TEA5767_READ_ADDR,(uint8_t *)&status,sizeof(tea5767_status_t));
+    {
+        rc = tea5767_read_status(&status);
         if (rc != 0) {
             goto err_exit;
         }
  
         if (status.rf == STATUS_IS_STATION_FOUND) {
-            if (status.blf == STATUS_IS_BAND_LIMIT_REACHED){
+            if (status.blf == STATUS_IS_BAND_LIMIT_REACHED) {
                 log_warning("band limit reached.\r\n");
                 goto err_exit;
             } 
-            rc = tea5767_get_freq();
-            if (rc < 0) {
+            pll = (uint16_t)status.pllh << 8 | status.plll;
+            freq = tea5767_calculate_freq(config.hlsi,pll);
+            is_ok = 1;
+            log_debug("station %d Hz found.\r\n",freq);
+            /*回写搜索到的频率到tea5767*/
+            config.pllh = status.pllh;
+            config.plll = status.plll;
+            rc = tea5767_flush_config(&config);
+            if (rc != 0) {
                 goto err_exit;
             }
-            is_ok = 1;
-            log_debug("station %d Hz found.\r\n",rc);
         }
     }
  
-    return 0;
     config.sm = CONFIG_SEARCH_MODE_DISABLE ;
     config.mute = CONFIG_MUTE_OFF;
     
-    rc = tea5767_write(TEA5767_WRITE_ADDR,(uint8_t*)&config, sizeof(tea5767_config_t));
+    rc = tea5767_flush_config(&config);
     if (rc != 0) {
-        log_error("tea5767 cancle search error.\r\n");
-        return -1;
+        
+        goto err_exit;
     }
 
     log_debug("tea5767 cancle search ok.\r\n");
+
+    return freq;
+    
+err_exit:
+    log_error("tea5767 search error.\r\n");
+
     return 0;    
-            rc = tea5767_cancle_search();
-            if (rc != 0) {
-                return -1;
-            }
+
 }
 
 
