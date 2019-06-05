@@ -200,12 +200,39 @@ int iic_read(uint8_t addr,uint8_t *buff,uint8_t cnt);
 */
 static int tea5767_write(uint8_t addr,uint8_t *src,uint32_t size)
 {
+<<<<<<< HEAD
     int rc;
     rc = iic_write(addr,src,size);
     if (rc != 0) {
         log_error("tea5767 write error.\r\n");
         return -1;
     }
+=======
+int result;
+log_debug("init start...\r\n");
+
+config.reg1=0;
+config.mute=CONFIG_MUTE_OFF;
+config.sm=CONFIG_SEARCH_MODE_DISABLE;
+config.reg2=0;
+config.reg3=0;
+config.hlsi=CONFIG_HLSI_HIGH;
+
+config.reg4=0;
+config.smute=CONFIG_SOFT_MUTE_ON;
+config.snc=CONFIG_STEREO_NOISE_CANCLE_ON;
+config.stby=CONFIG_EXIT_STANDBY_MODE;
+config.xtal=CONFIG_XTAL_32768HZ;
+
+#if (BAND_LIMIT_REGION == BAND_LIMIT_REGION_EUROPE)
+config.bl=CONFIG_BAND_LIMIT_EUROPE;
+#else
+config.bl=CONFIG_BAND_LIMIT_JAPANESE;
+#endif
+
+config.reg5=0;
+config.dtc=1;
+>>>>>>> 0d9120d3f4ab0b73a65ce95f15b652cc04c1e9b5
 
     return 0;
 }
