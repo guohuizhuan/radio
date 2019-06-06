@@ -107,8 +107,8 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* i2cHandle)
     HAL_NVIC_EnableIRQ(I2C1_ER_IRQn);
   /* USER CODE BEGIN I2C1_MspInit 1 */
    __HAL_RCC_GPIOB_CLK_ENABLE();
-   I2C1->CR1|=(1<<15);
-   I2C1->CR1&=~(1<<15);
+   I2C1->CR1 |= (1<<15);
+   I2C1->CR1 &= ~(1<<15);
   /* USER CODE END I2C1_MspInit 1 */
   }
 }

@@ -1075,6 +1075,12 @@
                             <name>$PROJ_DIR$\..\Src\debug\log\SEGGER_RTT_V612j\Syscalls\SEGGER_RTT_Syscalls_IAR.c</name>
                         </file>
                     </group>
+                    <group>
+                        <name>serial_uart</name>
+                        <file>
+                            <name>$PROJ_DIR$\..\Src\debug\log\serial_uart\serial_uart.c</name>
+                        </file>
+                    </group>
                     <file>
                         <name>$PROJ_DIR$\..\Src\debug\log\log.c</name>
                     </file>
@@ -1087,9 +1093,9 @@
                 </file>
             </group>
             <group>
-                <name>memory_poll</name>
+                <name>lib</name>
                 <file>
-                    <name>$PROJ_DIR$\..\Src\memory_poll\memory_pool.c</name>
+                    <name>$PROJ_DIR$\..\Src\lib\src\serial.c</name>
                 </file>
             </group>
             <group>
@@ -1101,10 +1107,16 @@
                     <name>$PROJ_DIR$\..\Src\tasks\debug_task.c</name>
                 </file>
                 <file>
-                    <name>$PROJ_DIR$\..\Src\radio.c</name>
+                    <name>$PROJ_DIR$\..\Src\tasks\display_task.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Src\tasks\radio_task.c</name>
                 </file>
                 <file>
                     <name>$PROJ_DIR$\..\Src\tasks\tasks_init.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Src\tasks\temperature_task.c</name>
                 </file>
             </group>
             <group>

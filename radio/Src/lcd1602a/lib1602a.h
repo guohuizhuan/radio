@@ -89,11 +89,6 @@ typedef struct
     lib1602a_display_t display;
 }lib1602a_config_t;
 
-typedef enum
-{
-    LIB1602A_POS_LINE_1,
-    LIB1602A_POS_LINE_2	
-}lib1602a_pos_line_t;  
 
 /*
 * @brief 1602a注册io驱动
@@ -162,11 +157,12 @@ uint8_t lib1602a_get_cursor_position(void);
 /*
 * @brief 1602a设置光标位置
 * @param line 行号
-* @param x 列号 
+* @param x x轴坐标 
+* @param y y轴坐标
 * @return 0：成功 -1：失败
-* @note x最大值为LIB1602A_CHARACTERS_CNT_MAX_PER_LINE
+* @note x最大值为LIB1602A_CHARACTERS_CNT_MAX_PER_LINE y = 0 或者 1
 */
-int lib1602a_set_cursor_position(lib1602a_pos_line_t line ,uint8_t x);
+int lib1602a_set_cursor_position(uint8_t x,uint8_t y);
 
 /*
 * @brief 1602a光标左移
@@ -206,12 +202,12 @@ int lib1602a_move_cursor_down(void);
 
 /*
 * @brief 1602a在指定位置显示字符串
-* @param line 行号
-* @param x 列号 
+* @param x x轴坐标
+* @param y y轴坐标
 * @return 0：成功 -1：失败
-* @note x最大值为LIB1602A_CHARACTERS_CNT_MAX_PER_LINE
+* @note x最大值为LIB1602A_CHARACTERS_CNT_MAX_PER_LINE y = 0 或者 1
 */
-int lib1602a_display_string(lib1602a_pos_line_t line,uint8_t x,const char *str);
+int lib1602a_display_string(uint8_t x,uint8_t y,const char *str);
 
 
 
