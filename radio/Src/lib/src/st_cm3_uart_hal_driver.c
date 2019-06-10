@@ -17,25 +17,25 @@
 *                                                                            
 *                                                                            
 *****************************************************************************/
-#include "st_serial_uart_hal_driver.h"
+#include "st_cm3_uart_hal_driver.h"
 
 
 extern UART_HandleTypeDef huart1,huart2,huart3;
 
 /*st serial uart驱动结构体*/
-serial_hal_driver_t st_serial_uart_hal_driver = {
-.init = st_serial_uart_hal_init,
-.deinit = st_serial_uart_hal_deinit,
-.enable_txe_it = st_serial_uart_hal_enable_txe_it,
-.disable_txe_it = st_serial_uart_hal_disable_txe_it,
-.enable_rxne_it = st_serial_uart_hal_enable_rxne_it,
-.disable_rxne_it = st_serial_uart_hal_disable_rxne_it
+xuart_hal_driver_t xuart_hal_driver = {
+.init = st_uart_hal_init,
+.deinit = st_uart_hal_deinit,
+.enable_txe_it = st_uart_hal_enable_txe_it,
+.disable_txe_it = st_uart_hal_disable_txe_it,
+.enable_rxne_it = st_uart_hal_enable_rxne_it,
+.disable_rxne_it = st_uart_hal_disable_rxne_it
 };
 
 
 /* *****************************************************************************
 *
-*        lpc824 serial uart hal driver在IAR freertos下的移植
+*        st cm3 uart hal driver在IAR freertos下的移植
 *
 ********************************************************************************/
 
@@ -45,7 +45,7 @@ serial_hal_driver_t st_serial_uart_hal_driver = {
 * @return uart句柄
 * @note
 */
-static UART_HandleTypeDef *st_serial_uart_hal_search_handle_by_port(uint8_t port)
+static UART_HandleTypeDef *st_uart_hal_get_handle_by_port(uint8_t port)
 {
     UART_HandleTypeDef *st_uart_handle;
     if (port == 1) {
@@ -67,20 +67,20 @@ static UART_HandleTypeDef *st_serial_uart_hal_search_handle_by_port(uint8_t port
 
 /*
 * @brief 串口初始化驱动
-* @param port uart端口
-* @param bauds 波特率
-* @param data_bits 数据宽度
+* @param port 端口
+* @param baudrate 波特率
+* @param data_bit 数据宽度
 * @param stop_bit 停止位
 * @return 
 * @note
 */
-int st_serial_uart_hal_init(uint8_t port,uint32_t bauds,uint8_t data_bit,uint8_t stop_bit)
+int st_uart_hal_init(uint8_t port,uint32_t baudrate,uint8_t data_bit,uint8_t stop_bit)
 {
     UART_HandleTypeDef *st_uart_handle;
 
-    st_uart_handle = st_serial_uart_hal_search_handle_by_port(port);
+    st_uart_handle = st_uart_hal_get_handle_by_port(port);
 
-    st_uart_handle->Init.BaudRate = bauds;
+    st_uart_handle->Init.BaudRate = baudrate;
     if (data_bit == 8) {
         st_uart_handle->Init.WordLength = UART_WORDLENGTH_8B;
     }else{
@@ -111,7 +111,7 @@ int st_serial_uart_hal_init(uint8_t port,uint32_t bauds,uint8_t data_bit,uint8_t
 * @return < 0 失败
 * @note
 */
-int st_serial_uart_hal_deinit(uint8_t port)
+int st_uart_hal_deinit(uint8_t port)
 {
     return 0;
 }
@@ -123,11 +123,11 @@ int st_serial_uart_hal_deinit(uint8_t port)
 * @return 无
 * @note
 */
-void st_serial_uart_hal_enable_txe_it(uint8_t port)
+void st_uart_hal_enable_txe_it(uint8_t port)
 {
     UART_HandleTypeDef *st_uart_handle;
 
-    st_uart_handle = st_serial_uart_hal_search_handle_by_port(port);
+    st_uart_handle = st_uart_hal_get_handle_by_port(port);
     /*使能发送中断*/
     __HAL_UART_ENABLE_IT(st_uart_handle,/*UART_IT_TXE*/UART_IT_TC);   
 }
@@ -139,11 +139,11 @@ void st_serial_uart_hal_enable_txe_it(uint8_t port)
 * @return 无
 * @note
 */
-void st_serial_uart_hal_disable_txe_it(uint8_t port)
+void st_uart_hal_disable_txe_it(uint8_t port)
 {
     UART_HandleTypeDef *st_uart_handle;
 
-    st_uart_handle = st_serial_uart_hal_search_handle_by_port(port);
+    st_uart_handle = st_uart_hal_get_handle_by_port(port);
     /*禁止发送中断*/
     __HAL_UART_DISABLE_IT(st_uart_handle, /*UART_IT_TXE*/UART_IT_TC);   
 }
@@ -155,11 +155,11 @@ void st_serial_uart_hal_disable_txe_it(uint8_t port)
 * @return 无
 * @note
 */  
-void st_serial_uart_hal_enable_rxne_it(uint8_t port)
+void st_uart_hal_enable_rxne_it(uint8_t port)
 {
     UART_HandleTypeDef *st_uart_handle;
 
-    st_uart_handle = st_serial_uart_hal_search_handle_by_port(port);
+    st_uart_handle = st_uart_hal_get_handle_by_port(port);
     /*使能接收中断*/
     __HAL_UART_ENABLE_IT(st_uart_handle,UART_IT_RXNE);  
 }
@@ -171,11 +171,11 @@ void st_serial_uart_hal_enable_rxne_it(uint8_t port)
 * @return 无
 * @note
 */
-void st_serial_uart_hal_disable_rxne_it(uint8_t port)
+void st_uart_hal_disable_rxne_it(uint8_t port)
 {
     UART_HandleTypeDef *st_uart_handle;
 
-    st_uart_handle = st_serial_uart_hal_search_handle_by_port(port);
+    st_uart_handle = st_uart_hal_get_handle_by_port(port);
     /*禁止接收中断*/
     __HAL_UART_DISABLE_IT(st_uart_handle,UART_IT_RXNE); 
 }
@@ -187,13 +187,13 @@ void st_serial_uart_hal_disable_rxne_it(uint8_t port)
 * @return 无
 * @note
 */
-void st_serial_uart_hal_isr(serial_handle_t *handle)
+void st_uart_hal_isr(xuart_handle_t *handle)
 {
-    int result;
-    char recv_byte,send_byte;
+    uint32_t rc;
+    uint8_t recv_byte,send_byte;
     UART_HandleTypeDef *st_uart_handle;
 
-    st_uart_handle = st_serial_uart_hal_search_handle_by_port(handle->port);
+    st_uart_handle = st_uart_hal_get_handle_by_port(handle->setting.port);
 
     uint32_t tmp_flag = 0, tmp_it_source = 0; 
   
@@ -202,8 +202,8 @@ void st_serial_uart_hal_isr(serial_handle_t *handle)
   
     /*接收中断*/
     if((tmp_flag != RESET) && (tmp_it_source != RESET)) { 
-        recv_byte = (char)(st_uart_handle->Instance->DR & (char)0x00FF);
-        isr_serial_put_byte_from_recv(handle,recv_byte);
+        recv_byte = (char)(st_uart_handle->Instance->DR & (uint8_t)0x00FF);
+        xuart_isr_put_char(handle,recv_byte);
     }
 
     tmp_flag = __HAL_UART_GET_FLAG(st_uart_handle, /*UART_FLAG_TXE*/UART_FLAG_TC);
@@ -211,8 +211,8 @@ void st_serial_uart_hal_isr(serial_handle_t *handle)
   
     /*发送中断*/
     if ((tmp_flag != RESET) && (tmp_it_source != RESET)) {
-        result =isr_serial_get_byte_to_send(handle,&send_byte);
-        if (result == 1) {
+        rc = xuart_isr_get_char(handle,&send_byte);
+        if (rc) {
             st_uart_handle->Instance->DR = send_byte;
         }
     }  

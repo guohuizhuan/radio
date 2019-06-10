@@ -360,7 +360,9 @@
                     <state>$PROJ_DIR$/../Drivers/CMSIS/Include</state>
                     <state>$PROJ_DIR$/../Src/lcd1602a</state>
                     <state>$PROJ_DIR$/../Src/tea5767</state>
+                    <state>$PROJ_DIR$/../Src/lib/src</state>
                     <state>$PROJ_DIR$/../Src/debug/log</state>
+                    <state>$PROJ_DIR$/../Src/debug/log/log_uart</state>
                     <state>$PROJ_DIR$/../Src/debug/log/SEGGER_RTT_V612j/RTT</state>
                     <state>$PROJ_DIR$/../Src/debug/log/SEGGER_RTT_V612j/Syscalls</state>
                 </option>
@@ -383,7 +385,7 @@
                 <option>
                     <name>CCOptStrategy</name>
                     <version>0</version>
-                    <state>1</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>CCOptLevelSlave</name>
@@ -446,7 +448,7 @@
                 <option>
                     <name>CCOptStrategySlave</name>
                     <version>0</version>
-                    <state>1</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>CCGuardCalls</name>
@@ -1060,9 +1062,21 @@
         <group>
             <name>User</name>
             <group>
+                <name>bsp</name>
+                <file>
+                    <name>$PROJ_DIR$\..\Src\board\board.c</name>
+                </file>
+            </group>
+            <group>
                 <name>debug</name>
                 <group>
                     <name>log</name>
+                    <group>
+                        <name>log_uart</name>
+                        <file>
+                            <name>$PROJ_DIR$\..\Src\debug\log\log_uart\log_uart.c</name>
+                        </file>
+                    </group>
                     <group>
                         <name>segger_rtt</name>
                         <file>
@@ -1073,12 +1087,6 @@
                         </file>
                         <file>
                             <name>$PROJ_DIR$\..\Src\debug\log\SEGGER_RTT_V612j\Syscalls\SEGGER_RTT_Syscalls_IAR.c</name>
-                        </file>
-                    </group>
-                    <group>
-                        <name>serial_uart</name>
-                        <file>
-                            <name>$PROJ_DIR$\..\Src\debug\log\serial_uart\serial_uart.c</name>
                         </file>
                     </group>
                     <file>
@@ -1095,7 +1103,16 @@
             <group>
                 <name>lib</name>
                 <file>
-                    <name>$PROJ_DIR$\..\Src\lib\src\serial.c</name>
+                    <name>$PROJ_DIR$\..\Src\lib\src\circle_buffer.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Src\lib\src\printf.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Src\lib\src\st_cm3_uart_hal_driver.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Src\lib\src\xuart.c</name>
                 </file>
             </group>
             <group>
@@ -1148,6 +1165,9 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Src\stm32f1xx_it.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Src\usart.c</name>
             </file>
         </group>
     </group>
@@ -1205,6 +1225,9 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_tim_ex.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_uart.c</name>
             </file>
         </group>
     </group>

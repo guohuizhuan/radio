@@ -19,17 +19,57 @@
 *****************************************************************************/
 #include "circle_buffer.h"
 
+#if  CIRCLE_BUFFER_DEBUG > 0
+#define  CIRCLE_BUFFER_ASSERT(x)    { if ((x) == 0) { while (1); }}
+#else 
+#define  CIRCLE_BUFFER_ASSERT(x)
+#endif
+
 /*
-* @brief 循环缓存刷新
+* @brief 循环缓存初始化
 * @param cb 循环缓存指针
-* @param 
-* @return  刷新的长度
+* @param buffer 数据缓存地址
+* @param size 数据缓存大小
+* @return 无
 * @note 
 */
-int circle_buffer_flush(circle_buffer_t *cb)
+void circle_buffer_init(circle_buffer_t *cb,uint8_t *buffer,uint32_t size)
+{  
+    CIRCLE_BUFFER_ASSERT(cb);
+    CIRCLE_BUFFER_ASSERT(buffer);
+
+    cb->read = 0;
+    cb->write = 0;
+    cb->read_offset = 0;
+    cb->write_offset = 0;
+    cb->size = size;
+
+}
+
+/*
+* @brief 循环缓存当前数据量
+* @param cb 循环缓存指针
+* @return 循环缓存当前数据量
+* @
+* @note
+*/
+uint8_t circle_buffer_size(circle_buffer_t *cb)
 {
-    int size;
-    assert(cb);
+    return cb->write - cb->read;
+}
+
+/*
+* @brief 循环缓存冲刷
+* @param cb 循环缓存指针
+* @param 
+* @return  冲刷的长度
+* @note 
+*/
+uint32_t circle_buffer_flush(circle_buffer_t *cb)
+{
+    uint32_t size;
+    
+    CIRCLE_BUFFER_ASSERT(cb);
 
     size = cb->write - cb->read;
     cb->read = cb->write;   
@@ -38,92 +78,68 @@ int circle_buffer_flush(circle_buffer_t *cb)
 }
 
 /*
-* @brief 循环缓存容量
-* @param cb 循环缓存指针
-* @return 循环缓存容量
-* @note
-*/
-int circle_buffer_size(circle_buffer_t *cb)
-{
-    assert(cb);
-
-    return cb->size;
-}
-
-/*
-* @brief 循环缓存空闲容量
-* @param cb 循环缓存指针
-* @return 循环缓存空闲容量
-* @note
-*/
-int circle_buffer_free_size(circle_buffer_t *cb)
-{ 
-    if (cb == NULL) {
-        return -1;
-    }
-    return cb->size - (cb->write - cb->read);
-}
-
-/*
-* @brief 循环缓存已使用容量
-* @param cb 循环缓存指针
-* @return 循环缓存已使用容量
-* @note
-*/
-int circle_buffer_used_size(circle_buffer_t *cb)
-{ 
-    if (cb == NULL) {
-        return -1;
-    }
-    return  cb->write - cb->read;
-}
-
-/*
 * @brief 循环缓存是否已满
 * @param cb 循环缓存指针
-* @return true 已满
-* @return false 未满
+* @return 1：已满 0：未满
 * @note
 */
-bool circle_buffer_is_full(circle_buffer_t *cb)
+uint8_t circle_buffer_is_full(circle_buffer_t *cb)
 {  
-    if (cb == NULL) {
-        return -1;
-    }
-    return cb->write - cb->read == cb->size ? true : false;
+    CIRCLE_BUFFER_ASSERT(cb);
+
+    return cb->write - cb->read == cb->size ? 1 : 0;
 }
 
 /*
 * @brief 循环缓存是否已空
 * @param cb 循环缓存指针
-* @return true 已空
-* @return false 未空
+* @return 1：已空 0：未空
+* @
 * @note
 */
-bool circle_buffer_is_empty(circle_buffer_t *cb)
+uint8_t circle_buffer_is_empty(circle_buffer_t *cb)
 {
-    return cb->read == cb->write ? true : false;
+    return cb->read == cb->write ? 1 : 0;
 }
 
 /*
 * @brief  读取循环缓存中的数据
-* @param  cb   循环缓存指针
-* @param  dst  目的地址
+* @param  cb 循环缓存指针
+* @param  dst 目的地址
 * @param  size 期望读取的数量
 * @return 实际读取的数量
 * @note
 */
-int circle_buffer_read(circle_buffer_t *cb,char *dst,int size)
+uint32_t circle_buffer_read(circle_buffer_t *cb,uint8_t *dst,uint32_t size)
 {
-    int read_cnt = 0;
+    uint32_t read_size,remain_size;
+    uint32_t buffer_size;
+    
+    CIRCLE_BUFFER_ASSERT(cb);
+    CIRCLE_BUFFER_ASSERT(dst);
 
-    while (cb->read < cb->write && read_cnt < size) {
-        dst[read_cnt] = cb->buffer[cb->read & cb->mask];
-        cb->read++;
-        read_cnt++;
+    /*当前缓存数量*/
+    buffer_size = cb->write - cb->read;
+    if (size > buffer_size) {
+        size = buffer_size;
     }
-
-    return read_cnt;
+    
+    /*数据边界计算*/
+    if (size + cb->read_offset > cb->size) {
+        read_size = cb->size - cb->read_offset;
+        memcpy(dst,&cb->buffer[cb->read_offset],read_size);
+        remain_size = size - read_size;
+        memcpy(dst + read_size,&cb->buffer[0],remain_size);
+        cb->read_offset = remain_size;
+    } else {
+        memcpy(dst,&cb->buffer[cb->read_offset],size);
+        cb->read_offset += size;
+        if (cb->read_offset >= cb->size) {
+            cb->read_offset = 0;
+        }
+    }
+    
+    return size;
 }
 
 
@@ -135,17 +151,35 @@ int circle_buffer_read(circle_buffer_t *cb,char *dst,int size)
 * @return 实际写入的数量
 * @note
 */
-int circle_buffer_write(circle_buffer_t *cb,const char *src,int size)
+uint32_t circle_buffer_write(circle_buffer_t *cb,const uint8_t *src,uint32_t size)
 {
-    int write_cnt = 0;
+    uint32_t write_size,remain_size;
+    uint32_t free_size;
+    
+    CIRCLE_BUFFER_ASSERT(cb);
+    CIRCLE_BUFFER_ASSERT(src);
 
-    while (circle_buffer_free_size(cb) > 0 && write_cnt < size) {
-        cb->buffer[cb->write & cb->mask] = src[write_cnt];
-        cb->write++;
-        write_cnt++;  
+    /*当前可用空间*/
+    free_size = cb->size - (cb->write - cb->read);
+    if (size > free_size) {
+        size = free_size;
     }
-
-    return write_cnt;
+    /*数据边界计算*/
+    if (size + cb->write_offset > cb->size) {
+        write_size = cb->size - cb->write_offset;
+        memcpy(&cb->buffer[cb->write_offset],src,write_size);
+        remain_size = size - write_size;
+        memcpy(&cb->buffer[0],src + write_size,remain_size);
+        cb->write_offset = remain_size;
+    } else {
+        memcpy(&cb->buffer[cb->write_offset],src,size);
+        cb->write_offset += size;
+        if (cb->write_offset >= cb->size) {
+            cb->write_offset = 0;
+        }
+    }
+    
+    return size;
 }
 
 

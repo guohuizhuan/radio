@@ -1,17 +1,15 @@
 #ifndef  __LOG_UART_H__
 #define  __LOG_UART_H__
 
-#ifdef  __cplusplus
-    extern "C" {
+#ifdef   __cplusplus
+#define  LOG_UART_BEGIN        extern "C" {
+#define  LOG_UART_END          }
+#else
+#define  LOG_UART_BEGIN      
+#define  LOG_UART_END        
 #endif
+
 #include "stdint.h"
-#include "serial.h"
-
-
-#define  ST_SERIAL_UART                       1
-#define  NXP_SERIAL_UART                      2
-#define  LOG_SERIAL_UART                      NXP_SERIAL_UART
-
 
 #define  LOG_UART_RX_BUFFER_SIZE              32
 #define  LOG_UART_TX_BUFFER_SIZE              4096
@@ -21,17 +19,6 @@
 #define  LOG_UART_BAUD_RATES                  115200
 #define  LOG_UART_DATA_BITS                   8
 #define  LOG_UART_STOP_BITS                   1
-
-extern serial_handle_t log_serial_uart_handle;
-
-#if (LOG_SERIAL_UART == ST_SERIAL_UART)
-#include "st_serial_uart_hal_driver.h"
-#elif (LOG_SERIAL_UART == NXP_SERIAL_UART)
-#include "nxp_serial_uart_hal_driver.h"
-#else
-#error "LOG_SERIAL_UART must be ST_SERIAL_UART or NXP_SERIAL_UART."
-#endif
-
 
 /*
 * @brief 串口uart初始化
@@ -63,10 +50,16 @@ int log_serial_uart_read(char *dst,int size);
 
 int log_serial_uart_write(char *src,int size);
 
+/*
+* @brief log 串口中断
+* @param 无
+* @param 无
+* @return 无
+* @note
+*/
+void log_uart_isr();
 
-#ifdef  __cplusplus
-    }
-#endif
+LOG_UART_END
 
 
 

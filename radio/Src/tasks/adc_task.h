@@ -19,7 +19,7 @@ ADC_TASK_BEGIN
 /*adc任务句柄*/
 extern osThreadId adc_task_hdl;
 
-
+#define  ADC_TASK_PUT_MSG_TIMEOUT  5
 
 
 
