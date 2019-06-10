@@ -1,6 +1,7 @@
-#ignore file 
-/radio/EWARM/radio/
-/radio/EWARM/settings
-/radio/EWARM/BuildLog.log
-/radio/EWARM/radio.ewt
-
+/radio/EWARM/*
+!/radio/EWARM/radio.ewp
+!/radio/EWARM/radio.ewd
+!/radio/EWARM/Project.eww
+!/radio/EWARM/startup_stm32f103xb.s
+!/radio/EWARM/stm32f103xb_flash.icf
+!/radio/EWARM/stm32f103xb_sram.icf

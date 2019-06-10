@@ -6,10 +6,7 @@
 #include "log.h"
 
 
-osThreadId temperature_task_hdl;
 
-#define  TEMPERATURE_TASK_MSG_WAIT_TIMEOUT    osWaitForever
-#define  TEMPERATURE_TASK_PUT_MSG_TIMEOUT     5
 #define  TEMPERATURE_DIFF_THRESHOLD           0.1
 #define  UV25                                 1430000.0
 #define  UV_PER_C                             4300.0

@@ -2,6 +2,8 @@
 #include "radio_task.h"
 #include "adc_task.h"
 #include "debug_task.h"
+#include "st_cm3_uart_hal_driver.h"
+#include "xuart.h"
 #include "log.h"
 
 /*消息队列句柄*/
@@ -19,6 +21,9 @@ QueueHandle_t display_msg_q_hdl;
 */
 int tasks_init()
 {
+    /*串口驱动初始化*/
+    xuart_init(&xuart_hal_driver);
+
     /*创建ADC消息队列*/
 	adc_msg_q_hdl = xQueueCreate(ADC_MESSAGE_QUEUE_SIZE, sizeof(adc_message_t));
     log_assert(adc_msg_q_hdl);
