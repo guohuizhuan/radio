@@ -38,6 +38,7 @@ void circle_buffer_init(circle_buffer_t *cb,uint8_t *buffer,uint32_t size)
     CIRCLE_BUFFER_ASSERT(cb);
     CIRCLE_BUFFER_ASSERT(buffer);
 
+    cb->buffer = buffer;
     cb->read = 0;
     cb->write = 0;
     cb->read_offset = 0;
@@ -73,6 +74,8 @@ uint32_t circle_buffer_flush(circle_buffer_t *cb)
 
     size = cb->write - cb->read;
     cb->read = cb->write;   
+    cb->read_offset = cb->read % cb->size;
+    cb->write_offset = cb->write % cb->size;
 
     return size;
 }
@@ -138,7 +141,8 @@ uint32_t circle_buffer_read(circle_buffer_t *cb,uint8_t *dst,uint32_t size)
             cb->read_offset = 0;
         }
     }
-    
+    cb->read += size;
+
     return size;
 }
 
@@ -178,8 +182,7 @@ uint32_t circle_buffer_write(circle_buffer_t *cb,const uint8_t *src,uint32_t siz
             cb->write_offset = 0;
         }
     }
-    
+    cb->write += size;
+
     return size;
 }
-
-

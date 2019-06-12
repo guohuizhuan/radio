@@ -16,6 +16,9 @@
 CIRCLE_BUFFER_BEGIN 
 
 
+#define  CIRCLE_BUFFER_DEBUG    1
+
+
 typedef struct
 {
     uint8_t *buffer;

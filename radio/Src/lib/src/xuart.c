@@ -19,7 +19,12 @@
 *****************************************************************************/
 #include "xuart.h"
 
+#if  XUART_DEBUG  >  0
 #define  XUART_ASSERT(x)  { if ((x) == 0) { while (1);}}
+#else
+#define  XUART_ASSERT(x)
+#endif
+
 
 typedef struct
 {
@@ -27,8 +32,10 @@ typedef struct
     xuart_hal_driver_t *driver;
 }xuart_instance_t;
 
-
+/*内部维护的实体*/
 static xuart_instance_t xuart;
+
+
 /*
 * @brief  从串口非阻塞的读取数据
 * @param handle 串口句柄
@@ -44,7 +51,6 @@ uint32_t xuart_read(xuart_handle_t *handle,uint8_t *dst,uint32_t size)
     XUART_ASSERT(xuart.is_driver_register);
     XUART_ASSERT(handle);
     XUART_ASSERT(dst);
-
 
     XUART_ENTER_CRITICAL();
     read = circle_buffer_read(&handle->recv,dst,size);
@@ -104,6 +110,8 @@ void xuart_clear(xuart_handle_t *handle)
     handle->is_rxne_int_enable = 1;
     xuart.driver->disable_txe_it(handle->setting.port);
     xuart.driver->enable_rxne_it(handle->setting.port);
+    circle_buffer_flush(&handle->recv);
+    circle_buffer_flush(&handle->send);
     XUART_EXIT_CRITICAL();
 }
 
@@ -171,15 +179,14 @@ int xuart_close(xuart_handle_t *handle)
     if (rc != 0){
         return -1;
     }
-
-
-    circle_buffer_flush(&handle->recv);
-    circle_buffer_flush(&handle->send);    
+ 
     xuart.driver->disable_rxne_it(handle->setting.port);
     xuart.driver->disable_txe_it(handle->setting.port);
     handle->is_rxne_int_enable = 0;
     handle->is_txe_int_enable = 0;
     handle->is_port_open = 0;
+    circle_buffer_flush(&handle->recv);
+    circle_buffer_flush(&handle->send); 
 
     XUART_EXIT_CRITICAL();
  
@@ -266,20 +273,15 @@ uint32_t xuart_isr_get_char(xuart_handle_t *handle,uint8_t *send)
 */
 uint32_t serial_select(xuart_handle_t *handle,uint32_t timeout)
 {
-    int size = 0;
-
     XUART_ASSERT(xuart.is_driver_register);
     XUART_ASSERT(handle);
     XUART_ASSERT(handle->is_port_open);
 
-    while (timeout -- > 0 && size == 0) {
-        size = circle_buffer_size(&handle->recv);
-        if (size == 0) {
-            osDelay(1);
-        }
-    } 
-        
-    return size;
+    while (timeout -- > 0 && circle_buffer_size(&handle->recv) == 0) {
+        osDelay(1);
+    }
+     
+    return circle_buffer_size(&handle->recv);
 }
 
 

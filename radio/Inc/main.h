@@ -72,14 +72,14 @@ void Error_Handler(void);
 #define D5_GPIO_Port GPIOA
 #define D6_Pin GPIO_PIN_7
 #define D6_GPIO_Port GPIOA
-#define D7_Pin GPIO_PIN_0
-#define D7_GPIO_Port GPIOB
 #define RW_Pin GPIO_PIN_1
 #define RW_GPIO_Port GPIOB
 #define RS_Pin GPIO_PIN_10
 #define RS_GPIO_Port GPIOB
 #define E_Pin GPIO_PIN_11
 #define E_GPIO_Port GPIOB
+#define D7_Pin GPIO_PIN_8
+#define D7_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

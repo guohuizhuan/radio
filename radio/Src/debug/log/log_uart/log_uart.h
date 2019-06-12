@@ -15,7 +15,7 @@
 #define  LOG_UART_TX_BUFFER_SIZE              4096
 
 
-#define  LOG_UART_PORT                        0
+#define  LOG_UART_PORT                        1
 #define  LOG_UART_BAUD_RATES                  115200
 #define  LOG_UART_DATA_BITS                   8
 #define  LOG_UART_STOP_BITS                   1
@@ -28,7 +28,7 @@
 * @note
 */
 
-int log_serial_uart_init(void);
+int log_uart_init(void);
 
 /*
 * @brief 串口uart读取数据
@@ -38,7 +38,7 @@ int log_serial_uart_init(void);
 * @note
 */
 
-int log_serial_uart_read(char *dst,int size);
+uint32_t log_uart_read(char *dst,uint32_t size);
 
 /*
 * @brief 串口uart写入数据
@@ -48,7 +48,7 @@ int log_serial_uart_read(char *dst,int size);
 * @note
 */
 
-int log_serial_uart_write(char *src,int size);
+uint32_t log_uart_write(char *src,uint32_t size);
 
 /*
 * @brief log 串口中断

@@ -34,11 +34,15 @@ static fm_frequency_t fm_freq;
 
 void radio_task(void const * argument)
 {
+    int rc;
     radio_message_t radio_msg;
     display_message_t display_msg;
     uint16_t adc;
     uint32_t temp;
     uint8_t level_hi,level_lo;
+
+    rc = tea5767_init();
+    log_assert(rc == 0);
 
     while (1) 
     {

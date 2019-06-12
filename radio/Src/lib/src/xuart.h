@@ -1,5 +1,5 @@
-#ifndef  __SERIAL_H__
-#define  __SERIAL_H__
+#ifndef  __XUART_H__
+#define  __XUART_H__
 #include "stdint.h"
 #include "circle_buffer.h"
 
@@ -13,6 +13,8 @@
 
 XUART_BEGIN
 
+
+#define  XUART_DEBUG   1
 
 /*freertos下使用*/
 #define  SERIAL_IN_FREERTOS                         1

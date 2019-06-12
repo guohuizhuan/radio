@@ -365,6 +365,8 @@
                     <state>$PROJ_DIR$/../Src/debug/log/log_uart</state>
                     <state>$PROJ_DIR$/../Src/debug/log/SEGGER_RTT_V612j/RTT</state>
                     <state>$PROJ_DIR$/../Src/debug/log/SEGGER_RTT_V612j/Syscalls</state>
+                    <state>$PROJ_DIR$/../Src/board</state>
+                    <state>$PROJ_DIR$/../Src/tasks</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1016,7 +1018,7 @@
                 </option>
                 <option>
                     <name>IlinkTrustzoneImportLibraryOut</name>
-                    <state>###Unitialized###</state>
+                    <state>radio_import_lib.o</state>
                 </option>
                 <option>
                     <name>OILinkExtraOption</name>

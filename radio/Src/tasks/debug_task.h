@@ -7,7 +7,16 @@ extern  "C" {
 
 
 
-
+/*任务句柄*/
+extern osThreadId debug_task_hdl;
+/*
+* @brief 
+* @param
+* @param
+* @return 
+* @note
+*/
+void debug_task(void const * argument);
 
 
 

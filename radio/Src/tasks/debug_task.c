@@ -1,65 +1,110 @@
+#include "cmsis_os.h"
+#include "stdint.h"
+#include "string.h"
+#include "stdlib.h"
 #include "debug_task.h" 
+#include "tea5767.h"
+#include "log.h"
 
-void StartDefaultTask(void const * argument)
+osThreadId debug_task_hdl;
+
+/*
+* @brief 
+* @param
+* @param
+* @return 
+* @note
+*/
+void debug_task(void const * argument)
 {
-    uint8_t cnt;
-    uint8_t cmd[5];
-    uint8_t id;
     int rc;
+    char cmd[20];
+    uint8_t id;
     uint32_t freq;
-  
+ 
+    char *cmd_raw;
+    char *cmd_str;
+    char *param_str;
+
     log_debug("waiting for cmd...\r\n");
 
     while (1) {
 
-        cnt = SEGGER_RTT_Read(0,cmd,5);
-        if (cnt >= 3) {      
-            switch(cmd[0])
-            {
-                case 'id':
-                rc = tea5767_id(&id);   
-                break;
-    case 'a':
-     rc = tea5767_init();   
-     break; 
-    case 'u':
-    rc = tea5767_search_up(SEARCH_STOP_LEVEL_10, &freq);   
-    break;
-    case 'd':
-    rc = tea5767_search_down(SEARCH_STOP_LEVEL_10, &freq);   
-    break;   
-    
-    case 's':
-    rc = tea5767_set_cur_freq((cmd[1]-'0')*10000000+(cmd[2]-'0')*1000000+(cmd[3]-'0')*100000);   
-    break;
-    case 'g':
-    rc = tea5767_get_cur_freq(&freq);   
-    break;  
-    case 'o':
-    rc =tea5767_mute_on();
-    break;
-     case 'f':
-    rc =tea5767_mute_off();
-    break;
-    
-    case 'O':
-    rc =tea5767_stereo_on();
-    break;
-     case 'F':
-    rc =tea5767_stereo_off();
-    break;
-    
-    case 'c':
-    rc = tea5767_cancle_search();   
-    break;  
-    default :
-    rc =-1;
-    } 
-    if(rc == -1){
-    log_error("excute error.\r\n");
-    }else{
-     log_debug("excute ok.\r\n");
+        osDelay(100);
+        rc = log_read(cmd,10);
+        if (rc == 0) {
+            continue;
+        }
+        rc = -1;
+        
+        cmd_raw = strtok((char *)cmd,"\r");
+        if (cmd_raw == NULL) {
+            continue;
+        }
+
+        cmd_str = strtok(cmd_raw," ");
+        if (cmd_str) {
+            param_str = strtok(NULL," ");
+        } 
+
+        /*读取ID*/
+        if (strcmp(cmd_str,"id") == 0) {
+            rc = tea5767_read_id(&id);   
+        }
+        /*初始化*/
+        if (strcmp(cmd_str,"init") == 0) {
+            rc = tea5767_init();   
+        }
+
+        /*搜索台*/
+        if (strcmp(cmd_str,"search") == 0) {
+            if (strcmp(param_str,"up") == 0) {
+                rc = tea5767_search(1,SEARCH_STOP_LEVEL_10);   
+            } else {
+                rc = tea5767_search(-1,SEARCH_STOP_LEVEL_10);   
+            }
+        }
+        /*设置频率*/
+        if (strcmp(cmd_str,"set_freq") == 0 && param_str) {
+            freq = atoi((char *)param_str);
+            rc = tea5767_set_freq(freq * 100000);   
+        }
+        /*获取频率*/
+        if (strcmp(cmd_str,"get_freq") == 0) {
+            rc = tea5767_get_freq();   
+        }
+
+        /*静音开关*/
+        if (strcmp(cmd_str,"mute") == 0) {
+            if (strcmp(param_str,"on") == 0) {
+                rc = tea5767_mute_on();
+            } else {
+                rc = tea5767_mute_off();
+            }
+        }
+
+        /*立体声*/
+        if (strcmp(cmd_str,"stereo") == 0) {
+            if (strcmp(param_str,"on") == 0) {
+                rc = tea5767_stereo_on();
+            } else {
+                rc = tea5767_stereo_off();
+            }
+        }
+        /*设置日志等级*/
+        if (strcmp(cmd_str,"set_log_level") == 0) {
+            if (param_str) {
+                uint8_t level = atoi(param_str);
+                rc = log_set_level(level);
+            }
+          
+        }
+           
+        if (rc == -1) {
+            log_error("excute error.\r\n");
+        } else {
+            log_debug("excute ok.\r\n");
+        }
+
     }
-    }
-    osDelay(100);
-  }
+}

@@ -25,13 +25,9 @@
 #include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */     
-#include "i2c.h"
-#include "tea5767.h"
-#include "radio.h"
+/* USER CODE BEGIN Includes */   
+#include "tasks_init.h"  
 #include "log.h"
-#define  LOG_MODULE_LEVEL    LOG_LEVEL_DEBUG
-#define  LOG_MODULE_NAME     "[freertos]"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -127,7 +123,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-
+    tasks_init();
   /* USER CODE END RTOS_THREADS */
 
 }
@@ -144,38 +140,16 @@ void StartDefaultTask(void const * argument)
 
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
-    
+   while (1) 
+   {
+    osDelay(1);
+   }
   /* USER CODE END StartDefaultTask */
 }
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
-int iic_write(uint8_t addr,uint8_t *buff,uint8_t cnt)
-{
-    HAL_StatusTypeDef status;
-    status =  HAL_I2C_Master_Transmit(&hi2c1,addr,buff,cnt,0xff);
-    if (status != HAL_OK) {
-        return -1;
-    } 
-  
-    return 0;
-}
 
-int iic_read(uint8_t addr,uint8_t *buff,uint8_t cnt)
-{
-    HAL_StatusTypeDef status;
-    status =  HAL_I2C_Master_Receive(&hi2c1,addr,buff,cnt,0xff);
-    if (status != HAL_OK) {
-        return -1;
-    }
-  
-    return 0;
-}
-
-uint32_t log_time()
-{
-    return osKernelSysTick();
-}
 
 /* USER CODE END Application */
 

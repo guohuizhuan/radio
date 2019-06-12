@@ -13,10 +13,17 @@
 
 RADIO_BEGIN
 
-extern osThreadId adc_task_hdl;
 extern osThreadId radio_task_hdl;
 
-void adc_task(void const * argument);
+
+/*
+* @brief 
+* @param
+* @param
+* @return 
+* @note
+*/
+
 void radio_task(void const * argument);
 
 

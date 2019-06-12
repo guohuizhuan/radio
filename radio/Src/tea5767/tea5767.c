@@ -186,8 +186,8 @@ static tea5767_config_t tea5767_config;
 
 
 /*外部声明*/
-int iic_write(uint8_t addr,uint8_t *buff,uint8_t cnt);
-int iic_read(uint8_t addr,uint8_t *buff,uint8_t cnt);
+extern int iic_write(uint8_t addr,uint8_t *buff,uint8_t cnt);
+extern int iic_read(uint8_t addr,uint8_t *buff,uint8_t cnt);
 
 
 
@@ -266,24 +266,6 @@ static int tea5767_get_config(tea5767_config_t *config)
     }
 
     *config = tea5767_config;
-    return 0;
-}
-
-
-/*
-* @brief 更新tea5767缓存的参数
-* @param config 新配置参数指针
-* @param
-* @return 0：成功 -1：失败
-* @note
-*/
-static int tea5767_update_config(tea5767_config_t *config)
-{
-    if (config == NULL) {
-        return -1;
-    }
-
-    tea5767_config = *config;
     return 0;
 }
 
@@ -411,7 +393,7 @@ int tea5767_read_id(uint8_t *id)
     int rc;
     tea5767_status_t status;
 
-    rc = tea5767_read_status(&status)
+    rc = tea5767_read_status(&status);
     if (rc != 0) {
         log_error("tea5767 read id error.\r\n");
         return -1;
@@ -461,9 +443,9 @@ int tea5767_injection(int dir)
     tea5767_get_config(&config);
 
     if (dir >= 0) {
-        config->hlsi == CONFIG_HLSI_HIGH;
+        config.hlsi = CONFIG_HLSI_HIGH;
     } else {
-        config->hlsi == CONFIG_HLSI_LOW;
+        config.hlsi = CONFIG_HLSI_LOW;
     }
     
     rc = tea5767_flush_config(&config);
@@ -597,6 +579,7 @@ int tea5767_stereo_off(void)
 */
 uint32_t tea5767_get_freq(void)
 {
+    int rc;
     uint32_t freq;
     uint16_t pll;
     tea5767_config_t config;
@@ -610,7 +593,7 @@ uint32_t tea5767_get_freq(void)
 
     tea5767_get_config(&config);
     pll = (uint16_t)status.pllh << 8 | status.plll;
-    freq = tea5767_calculate_freq(config.hlsi, uint16_t pll)
+    freq = tea5767_calculate_freq(config.hlsi,pll);
     
     log_debug("tea5767 get freq:%d ok.\r\n",freq);
     return freq;
@@ -626,6 +609,7 @@ uint32_t tea5767_get_freq(void)
 */
 int tea5767_set_freq(uint32_t freq)
 {
+    int rc;
     uint16_t pll;
     tea5767_config_t config;
     
@@ -657,7 +641,6 @@ int tea5767_freq_step(int32_t freq_step)
 {
     int rc;
     int32_t freq;
-    uint16_t pll;
 
     freq = tea5767_get_freq();
     if (freq < 0) {

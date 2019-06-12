@@ -16,8 +16,17 @@
 DISPLAY_TASK_BEGIN   
 
 
-/*adc任务句柄*/
+/*显示任务句柄*/
 extern osThreadId display_task_hdl;
+/*
+* @brief 
+* @param
+* @param
+* @return 
+* @note
+*/
+void display_task(void const * argument);
+
 
 #define  DISPLAY_TASK_MSG_WAIT_TIMEOUT       osWaitForever
 #define  FM_FREQ_DISPLAY_MSG                 1

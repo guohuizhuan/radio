@@ -54,9 +54,9 @@ int log_uart_init(void)
 * @return  实际读取的数量
 * @note
 */
-uint32_t log_uart_uart_read(uint8_t *dst,int size)
+uint32_t log_uart_read(char *dst,uint32_t size)
 {
-    return xuart_read(&log_uart_handle,dst,size);
+    return xuart_read(&log_uart_handle,(uint8_t *)dst,size);
 }
 
 /*
@@ -66,11 +66,11 @@ uint32_t log_uart_uart_read(uint8_t *dst,int size)
 * @return  实际写入的数量
 * @note
 */
-uint32_t log_uart_uart_write(uint8_t *src,uint32_t size)
+uint32_t log_uart_write(char *src,uint32_t size)
 {
     uint32_t write_size;
 
-    write_size = xuart_write(&log_uart_handle,src,size); 
+    write_size = xuart_write(&log_uart_handle,(uint8_t *)src,size); 
 
     return write_size;
 }

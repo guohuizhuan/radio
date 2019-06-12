@@ -4,6 +4,7 @@
 #include "radio_task.h"
 #include "lib1602a.h"
 #include "stdio.h"
+#include "board.h"
 #include "log.h"
 
 osThreadId display_task_hdl;

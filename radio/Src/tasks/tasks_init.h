@@ -14,7 +14,6 @@
 
 TASKS_INIT_BEGIN 
 
-extern QueueHandle_t adc_msg_q_hdl;
 extern QueueHandle_t radio_msg_q_hdl;
 extern QueueHandle_t temperature_msg_q_hdl;
 extern QueueHandle_t display_msg_q_hdl;
@@ -52,8 +51,20 @@ typedef struct
     };
 }display_message_t;
 
-#define  MSG_ID_ADC_COMPLETED      1
+#define  MSG_ID_ADC_COMPLETED                1
 
+#define  TEMPERATURE_MESSAGE_QUEUE_SIZE      4
+#define  RADIO_MESSAGE_QUEUE_SIZE            4
+#define  DISPLAY_MESSAGE_QUEUE_SIZE          4
+
+/*
+* @brief 
+* @param
+* @param
+* @return 
+* @note
+*/
+int tasks_init();
 
 TASKS_INIT_END
 

@@ -9,8 +9,8 @@
 
 #define  TEMPERATURE_DIFF_THRESHOLD           0.1
 #define  UV25                                 1430000.0
-#define  UV_PER_C                             4300.0
-
+#define  UV_PER_C                             43000.0
+#define  UV_PER_ADC                           805.664
 
 typedef struct
 {
@@ -19,6 +19,7 @@ typedef struct
     uint8_t is_changed;
 }temperature_t;
 
+osThreadId temperature_task_hdl;
 static temperature_t temperature;
 /*
 * @brief 
@@ -54,7 +55,7 @@ void temperature_task(void const * argument)
                 }
 
                 adc = temperature_msg.adc.value;
-                temp = 25.0 + (UV25 - adc * 3300000 / 4096) / UV_PER_C;
+                temp = 25.0 + (UV25 - (float)adc * UV_PER_ADC) / UV_PER_C;
                 diff = temp - temperature.value;
                 if (diff >= TEMPERATURE_DIFF_THRESHOLD || diff <= -TEMPERATURE_DIFF_THRESHOLD) {
                     temperature.value = temp;
@@ -63,7 +64,7 @@ void temperature_task(void const * argument)
                         temperature.is_err = 0;
                     }
 
-                    log_debug("temperature change to:%d.\r\n",temperature.value);
+                    log_debug("temperature change to:%.1f\r\n",temperature.value);
                 }
                 /*温度变化就发送消息*/
                 if (temperature.is_changed) {
