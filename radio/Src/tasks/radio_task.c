@@ -3,6 +3,7 @@
 #include "tea5767.h"
 #include "display_task.h"
 #include "tasks_init.h"
+#include "progress_bar.h"
 #include "log.h"
 
 
@@ -40,13 +41,24 @@ void radio_task(void const * argument)
     uint32_t temp;
     uint8_t level_hi,level_lo;
 
-    tea5767_init();
+    /*测试*/
+    char buffer[50];
+    uint32_t i = 0;
+    progress_bar_t progress_bar;
 
+    progress_init(&progress_bar,"complete",'#',buffer,50,1000,1);
+
+    tea5767_init();
     while (1) 
     {
         /*等待消息*/
         if (xQueueReceive(radio_msg_q_hdl,&radio_msg,RADIO_TASK_MSG_WAIT_TIMEOUT)) {
 
+        i ++;
+        if (i <= 100) {
+            progress_show(&progress_bar,10 * i);
+            continue;
+        }
             /*AD转换完成消息*/
             if (radio_msg.id == MSG_ID_ADC_COMPLETED) {
                 /*adc是错误的*/

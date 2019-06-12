@@ -1111,6 +1111,9 @@
                     <name>$PROJ_DIR$\..\Src\lib\src\printf.c</name>
                 </file>
                 <file>
+                    <name>$PROJ_DIR$\..\Src\lib\src\progress_bar.c</name>
+                </file>
+                <file>
                     <name>$PROJ_DIR$\..\Src\lib\src\st_cm3_uart_hal_driver.c</name>
                 </file>
                 <file>

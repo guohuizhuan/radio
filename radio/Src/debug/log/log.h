@@ -78,14 +78,14 @@
 #define LOG_TIME_FORMAT        "[%1d]"
 #endif
 
-#define  LOG_FILE_NAME_FORMAT  " %s | "
-#define  LOG_LINE_NUM_FORMAT   "%d "
+#define  LOG_FILE_NAME_FORMAT  " %s"
+#define  LOG_LINE_NUM_FORMAT   " %d => "
 
 
-#define LOG_ERROR_PREFIX_FORMAT       "\r\n"LOG_ERROR_COLOR   LOG_TIME_FORMAT   "[error]"   LOG_FILE_NAME_FORMAT LOG_LINE_NUM_FORMAT "\r\n"
-#define LOG_WARNING_PREFIX_FORMAT     "\r\n"LOG_WARNING_COLOR LOG_TIME_FORMAT   "[warning]" LOG_FILE_NAME_FORMAT LOG_LINE_NUM_FORMAT "\r\n"
-#define LOG_INFO_PREFIX_FORMAT        "\r\n"LOG_INFO_COLOR    LOG_TIME_FORMAT   "[info]"    LOG_FILE_NAME_FORMAT LOG_LINE_NUM_FORMAT "\r\n"
-#define LOG_DEBUG_PREFIX_FORMAT       "\r\n"LOG_DEBUG_COLOR   LOG_TIME_FORMAT   "[debug]"   LOG_FILE_NAME_FORMAT LOG_LINE_NUM_FORMAT "\r\n"
+#define LOG_ERROR_PREFIX_FORMAT       LOG_ERROR_COLOR   LOG_TIME_FORMAT   "[error]"   LOG_FILE_NAME_FORMAT LOG_LINE_NUM_FORMAT 
+#define LOG_WARNING_PREFIX_FORMAT     LOG_WARNING_COLOR LOG_TIME_FORMAT   "[warning]" LOG_FILE_NAME_FORMAT LOG_LINE_NUM_FORMAT
+#define LOG_INFO_PREFIX_FORMAT        LOG_INFO_COLOR    LOG_TIME_FORMAT   "[info]"    LOG_FILE_NAME_FORMAT LOG_LINE_NUM_FORMAT
+#define LOG_DEBUG_PREFIX_FORMAT       LOG_DEBUG_COLOR   LOG_TIME_FORMAT   "[debug]"   LOG_FILE_NAME_FORMAT LOG_LINE_NUM_FORMAT
 
 #define LOG_PREFIX_VALUE              LOG_TIME_VALUE,__FILE__,__LINE__ 
 
@@ -146,7 +146,7 @@ int log_printf(uint8_t level,const char *format,...);
 */
 #define  log_debug(format,arg...)                                                           \
 {                                                                                           \
-   log_printf(LOG_LEVEL_DEBUG,LOG_DEBUG_PREFIX_FORMAT format,LOG_PREFIX_VALUE,##arg);     \
+   log_printf(LOG_LEVEL_DEBUG,LOG_DEBUG_PREFIX_FORMAT format,LOG_PREFIX_VALUE,##arg);       \
 }
 
 /*
@@ -158,7 +158,7 @@ int log_printf(uint8_t level,const char *format,...);
 */
 #define  log_info(format,arg...)                                                            \
 {                                                                                           \
-   log_printf(LOG_LEVEL_INFO,LOG_INFO_PREFIX_FORMAT format,LOG_PREFIX_VALUE,##arg);       \
+   log_printf(LOG_LEVEL_INFO,LOG_INFO_PREFIX_FORMAT format,LOG_PREFIX_VALUE,##arg);         \
 }
 
 /*
@@ -170,7 +170,7 @@ int log_printf(uint8_t level,const char *format,...);
 */
 #define  log_warning(format,arg...)                                                        \
 {                                                                                          \
-   log_printf(LOG_LEVEL_WARNING,LOG_WARNING_PREFIX_FORMAT format,LOG_PREFIX_VALUE,##arg);\
+   log_printf(LOG_LEVEL_WARNING,LOG_WARNING_PREFIX_FORMAT format,LOG_PREFIX_VALUE,##arg);  \
 }
 
 /*
@@ -182,7 +182,7 @@ int log_printf(uint8_t level,const char *format,...);
 */
 #define  log_error(format,arg...)                                                           \
 {                                                                                           \
-   log_printf(LOG_LEVEL_ERROR,LOG_ERROR_PREFIX_FORMAT format,LOG_PREFIX_VALUE,##arg);     \
+   log_printf(LOG_LEVEL_ERROR,LOG_ERROR_PREFIX_FORMAT format,LOG_PREFIX_VALUE,##arg);       \
 }
 
 /*
