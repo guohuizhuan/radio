@@ -34,15 +34,13 @@ static fm_frequency_t fm_freq;
 
 void radio_task(void const * argument)
 {
-    int rc;
     radio_message_t radio_msg;
     display_message_t display_msg;
     uint16_t adc;
     uint32_t temp;
     uint8_t level_hi,level_lo;
 
-    rc = tea5767_init();
-    log_assert(rc == 0);
+    tea5767_init();
 
     while (1) 
     {
@@ -72,6 +70,7 @@ void radio_task(void const * argument)
                 }
                 /*如果频率发生了改变*/
                 if (fm_freq.is_changed) {
+                    fm_freq.is_changed = 0;
                     /*设置tea5767新频率*/
                     tea5767_set_freq(fm_freq.value_100khz * FREQUENCY_STEP);
                     /*设置tea5767上偏移*/

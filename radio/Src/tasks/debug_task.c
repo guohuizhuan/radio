@@ -31,7 +31,9 @@ void debug_task(void const * argument)
     while (1) {
 
         osDelay(100);
-        rc = log_read(cmd,10);
+        rc = log_read(cmd,20);
+        cmd[19] = 0;
+
         if (rc == 0) {
             continue;
         }

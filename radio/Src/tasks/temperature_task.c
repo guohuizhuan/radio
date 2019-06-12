@@ -64,7 +64,7 @@ void temperature_task(void const * argument)
                         temperature.is_err = 0;
                     }
 
-                    log_debug("temperature change to:%.1f\r\n",temperature.value);
+                    log_debug("temperature change to:%.1fC\r\n",temperature.value);
                 }
                 /*温度变化就发送消息*/
                 if (temperature.is_changed) {
